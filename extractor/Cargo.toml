@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.65"
+console = "0.15.2"
+full_moon = { version = "0.16.2", features = ["roblox"] }
+phf = { version = "0.11", features = ["macros"] }
+rbx_binary = "0.6.6"
+rbx_dom_weak = "2.4.0"
