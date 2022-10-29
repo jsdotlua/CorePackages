@@ -17,7 +17,7 @@ use util::{
     write_instance_to_path,
 };
 
-const ROOT_PACKAGE_NAME: &str = "ReactRobloxProxy";
+const ROOT_PACKAGES: [&str; 1] = ["ReactRobloxProxy"];
 const IGNORED_PACKAGES: [&str; 4] = ["Promise", "roblox_cryo", "Cryo", "Roact17UpgradeFlag"];
 
 // Some core packages are provided as multiple versions, but older versions are not MIT
@@ -40,16 +40,20 @@ fn main() -> anyhow::Result<()> {
 
     let index = find_first_child(&dom, packages_root, "_Index").expect("_Index folder");
 
-    // ReactRoblox is the entry point, a wrapper around React to give a similar interface to Roact.
-    let react_roblox =
-        find_first_child(&dom, index, ROOT_PACKAGE_NAME).expect("ReactRoblox folder");
+    let entry_packages: Vec<&Instance> = ROOT_PACKAGES
+        .into_iter()
+        .map(|package_name| find_first_child(&dom, index, package_name).expect("root package"))
+        .collect();
 
     // Recursively collect all package
     let mut package_deps: BTreeMap<String, &Instance> = BTreeMap::new();
-    resolve_package_deps(&dom, react_roblox, index, &mut package_deps);
 
-    let root_module = find_first_child(&dom, react_roblox, ROOT_PACKAGE_NAME).unwrap();
-    package_deps.insert(ROOT_PACKAGE_NAME.into(), root_module);
+    for package in entry_packages {
+        resolve_package_deps(&dom, package, index, &mut package_deps);
+
+        let root_module = find_first_child(&dom, package, &package.name).unwrap();
+        package_deps.insert(package.name.clone(), root_module);
+    }
 
     output_extracted_deps(&dom, &package_deps);
 
