@@ -32,6 +32,8 @@ const ALLOWED_MODULES: [&str; 3] = [
 static SOURCE_REPLACEMENTS: phf::Map<&'static str, &'static str> = phf_map! {
     "Packages._Index.Scheduler-9c8468d8-8a7220fd.Scheduler.getJestMatchers.roblox" =>
         include_str!("../resources/sourceReplacements/getJestMatchers.roblox.lua"),
+    "Packages._Index.RoactProxy.RoactProxy" =>
+        include_str!("../resources/sourceReplacements/RoactProxy.lua"),
 };
 
 pub fn find_first_child<'a>(
@@ -75,15 +77,19 @@ pub fn get_full_name(dom: &WeakDom, instance: &Instance) -> String {
     names.join(".")
 }
 
-pub fn get_script_source(instance: &Instance) -> &str {
-    let source = instance
-        .properties
-        .get("Source")
-        .expect("ModuleScript to have Source property");
+pub fn get_script_source<'a>(dom: &'a WeakDom, instance: &'a Instance) -> &str {
+    if let Some(source) = SOURCE_REPLACEMENTS.get(&get_full_name(dom, instance)) {
+        source
+    } else {
+        let source = instance
+            .properties
+            .get("Source")
+            .expect("ModuleScript to have Source property");
 
-    match source {
-        Variant::String(string) => string,
-        _ => unreachable!("ModuleScript should have String Source property"),
+        match source {
+            Variant::String(string) => string,
+            _ => unreachable!("ModuleScript should have String Source property"),
+        }
     }
 }
 
@@ -172,8 +178,8 @@ pub fn get_dep_details(dom: &WeakDom, instance: &Instance) -> PackageDetails {
     let mut all_licensed = true;
     let mut bad_scripts: Vec<String> = Vec::new();
 
-    let root_source = get_script_source(instance);
-    let mut total_loc: usize = root_source.lines().count();
+    let (root_loc, _) = get_script_details(dom, instance);
+    let mut total_loc: usize = root_loc;
 
     let mut stack = VecDeque::from_iter(instance.children().into_iter());
     while let Some(current) = stack.pop_front() {
@@ -203,17 +209,12 @@ pub fn get_dep_details(dom: &WeakDom, instance: &Instance) -> PackageDetails {
 
 pub fn get_script_details(dom: &WeakDom, instance: &Instance) -> (usize, bool) {
     let full_name = get_full_name(dom, instance);
-    let full_name = full_name.as_str();
 
-    let source = if let Some(source) = SOURCE_REPLACEMENTS.get(&full_name) {
-        source
-    } else {
-        get_script_source(instance)
-    };
+    let source = get_script_source(dom, instance);
 
     let loc = source.lines().count();
 
-    let licensed = if ALLOWED_MODULES.contains(&full_name) {
+    let licensed = if ALLOWED_MODULES.contains(&full_name.as_str()) {
         true
     } else {
         let mut licensed = false;
@@ -243,7 +244,7 @@ pub fn write_instance_to_path(
         let mut path = root.clone();
         path.push("init.lua");
 
-        let source = get_script_source(instance);
+        let source = get_script_source(dom, instance);
         fs::write(path, source)?;
     }
 
@@ -257,7 +258,7 @@ pub fn write_instance_to_path(
 
         match child.class.as_str() {
             "Script" | "LocalScript" | "ModuleScript" => {
-                let source = get_script_source(child);
+                let source = get_script_source(dom, child);
                 let file_name = format!(
                     "{}{}",
                     child.name,

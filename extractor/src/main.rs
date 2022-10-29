@@ -17,7 +17,7 @@ use util::{
     write_instance_to_path,
 };
 
-const ROOT_PACKAGES: [&str; 1] = ["ReactRobloxProxy"];
+const ROOT_PACKAGES: [&str; 1] = ["RoactProxy"];
 const IGNORED_PACKAGES: [&str; 4] = ["Promise", "roblox_cryo", "Cryo", "Roact17UpgradeFlag"];
 
 // Some core packages are provided as multiple versions, but older versions are not MIT
@@ -101,7 +101,7 @@ fn resolve_package_deps<'a>(
             continue;
         }
 
-        let source = get_script_source(child);
+        let source = get_script_source(dom, child);
 
         let ast = full_moon::parse(source).unwrap();
         assert!(ast.nodes().last_stmt().is_some());
