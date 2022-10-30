@@ -157,7 +157,7 @@ fn resolve_package_deps<'a>(
             let wally_name = fix_package_name(dep_name).to_string();
             let version = format!(
                 "core-packages/{}@{}",
-                wally_name.to_case(Case::Camel),
+                wally_name.to_case(Case::Kebab),
                 CORE_PACKAGES_VERSION
             );
 

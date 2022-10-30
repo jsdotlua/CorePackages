@@ -1,5 +1,5 @@
 [package]
-name = 'core-packages/instanceOf'
+name = 'core-packages/instance-of'
 description = 'https://github.com/grilme99/CorePackages'
 version = '0.0.1'
 license = 'MIT + Apache 2.0'

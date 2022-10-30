@@ -8,7 +8,7 @@
 
 # `📁 CorePackages`
 
-**A collection of Roblox's MIT and Apache2-licensed CorePackages, automatically packaged for [Wally](https://wally.run).**
+**A collection of Roblox's MIT and Apache2-licensed CorePackages, automatically prepared for [Wally](https://wally.run).**
 
 </div>
 
@@ -52,5 +52,3 @@ I welcome community contributions to this project. If you want to contribute, pl
 
 ## License
 As a result of how Roblox has structured its internal modules, each script includes its license information in the header (usually licensed under either Roblox, Facebook, or me).
-
-This repository contains top-level copies of all licenses in use.

@@ -241,6 +241,8 @@ pub fn get_script_details(dom: &WeakDom, instance: &Instance) -> (usize, bool) {
 
 pub fn build_project_file(package_name: &str) -> String {
     let package_name = fix_package_name(package_name);
+    let package_name = package_name.to_case(Case::Kebab);
+
     let project = json!({
         "name": package_name,
         "tree": {
@@ -257,7 +259,7 @@ pub fn build_wally_manifest(
     package_deps: &WallyDependencies,
 ) -> String {
     let package_name = fix_package_name(package_name);
-    let package_name = package_name.to_case(Case::Camel);
+    let package_name = package_name.to_case(Case::Kebab);
 
     let package = WallyConfig {
         package: WallyConfigPackage {

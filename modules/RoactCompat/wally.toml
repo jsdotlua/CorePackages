@@ -1,5 +1,5 @@
 [package]
-name = 'core-packages/roactCompat'
+name = 'core-packages/roact-compat'
 description = 'https://github.com/grilme99/CorePackages'
 version = '0.0.1'
 license = 'MIT + Apache 2.0'
@@ -11,7 +11,7 @@ registry = 'https://github.com/UpliftGames/wally-index'
 realm = 'shared'
 
 [dependencies]
-LuauPolyfill = 'core-packages/luauPolyfill@0.0.1'
+LuauPolyfill = 'core-packages/luau-polyfill@0.0.1'
 React = 'core-packages/react@0.0.1'
-ReactRoblox = 'core-packages/reactRoblox@0.0.1'
+ReactRoblox = 'core-packages/react-roblox@0.0.1'
 Shared = 'core-packages/shared@0.0.1'

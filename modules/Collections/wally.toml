@@ -11,5 +11,5 @@ registry = 'https://github.com/UpliftGames/wally-index'
 realm = 'shared'
 
 [dependencies]
-ES7Types = 'core-packages/es7Types@0.0.1'
-InstanceOf = 'core-packages/instanceOf@0.0.1'
+ES7Types = 'core-packages/es-7-types@0.0.1'
+InstanceOf = 'core-packages/instance-of@0.0.1'
