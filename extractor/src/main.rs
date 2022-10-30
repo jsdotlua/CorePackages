@@ -1,21 +1,27 @@
 mod util;
+mod wally_types;
 
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     env,
     fs::{self, File},
     io::BufReader,
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use console::style;
+use convert_case::{Case, Casing};
 use full_moon::ast::Stmt;
 use rbx_dom_weak::{Instance, WeakDom};
 
 use util::{
-    find_first_child, get_dep_details, get_script_source, match_require, resolve_ref,
-    write_instance_to_path,
+    build_project_file, build_wally_manifest, find_first_child, fix_package_name, get_dep_details,
+    get_script_source, match_require, resolve_ref, write_instance_to_path,
 };
+use wally_types::WallyDependencies;
+
+// TODO: Come up with a better way to resolve the version of individual packages
+const CORE_PACKAGES_VERSION: &str = "0.0.1";
 
 const ROOT_PACKAGES: [&str; 1] = ["RoactProxy"];
 const IGNORED_PACKAGES: [&str; 4] = ["Promise", "roblox_cryo", "Cryo", "Roact17UpgradeFlag"];
@@ -45,17 +51,23 @@ fn main() -> anyhow::Result<()> {
         .map(|package_name| find_first_child(&dom, index, package_name).expect("root package"))
         .collect();
 
-    // Recursively collect all package
-    let mut package_deps: BTreeMap<String, &Instance> = BTreeMap::new();
+    // Recursively collect all packages that our root packages depend on
+    let mut relevant_packages: BTreeMap<String, &Instance> = BTreeMap::new();
+    let mut package_dependencies: HashMap<String, WallyDependencies> = HashMap::new();
 
     for package in entry_packages {
-        resolve_package_deps(&dom, package, index, &mut package_deps);
+        resolve_package_deps(
+            &dom,
+            package,
+            index,
+            &mut relevant_packages,
+            &mut package_dependencies,
+        );
 
         let root_module = find_first_child(&dom, package, &package.name).unwrap();
-        package_deps.insert(package.name.clone(), root_module);
+        relevant_packages.insert(package.name.clone(), root_module);
     }
-
-    output_extracted_deps(&dom, &package_deps);
+    output_extracted_deps(&dom, &relevant_packages);
 
     let modules = env::current_dir()?.join(Path::new("../modules/"));
     if modules.exists() {
@@ -65,11 +77,14 @@ fn main() -> anyhow::Result<()> {
     fs::create_dir(&modules)?;
 
     // Write packages to the file system
-    for (name, package) in package_deps {
+    for (name, package) in relevant_packages {
         let mut package_root = modules.clone();
 
-        package_root.push(name);
+        package_root.push(fix_package_name(&name));
         fs::create_dir(&package_root)?;
+
+        let dependencies = package_dependencies.get(&name).unwrap();
+        write_package_meta_files(&name, dependencies, &package_root)?;
 
         package_root.push("src");
         fs::create_dir(&package_root)?;
@@ -84,9 +99,15 @@ fn resolve_package_deps<'a>(
     dom: &'a WeakDom,
     root: &Instance,
     index: &'a Instance,
-    package_deps: &mut BTreeMap<String, &'a Instance>,
+    relevant_packages: &mut BTreeMap<String, &'a Instance>,
+    package_deps: &mut HashMap<String, WallyDependencies>,
 ) {
+    let root_name = &root.name;
     let children = root.children();
+
+    if package_deps.get(root_name).is_none() {
+        package_deps.insert(root_name.to_owned(), BTreeMap::new());
+    }
 
     for child in children {
         let child = resolve_ref(dom, child);
@@ -130,7 +151,19 @@ fn resolve_package_deps<'a>(
                 continue;
             }
 
-            if package_deps.contains_key(dep_name) {
+            // Add this dependency to the list of deps for the root package
+            let deps = package_deps.get_mut(root_name).unwrap();
+
+            let wally_name = fix_package_name(dep_name).to_string();
+            let version = format!(
+                "core-packages/{}@{}",
+                wally_name.to_case(Case::Camel),
+                CORE_PACKAGES_VERSION
+            );
+
+            deps.insert(wally_name, version);
+
+            if relevant_packages.contains_key(dep_name) {
                 continue;
             }
 
@@ -138,11 +171,31 @@ fn resolve_package_deps<'a>(
                 let dep_entry =
                     find_first_child(dom, dep, path_components.last().unwrap()).unwrap();
 
-                package_deps.insert(dep_name.to_owned(), dep_entry);
-                resolve_package_deps(dom, dep, index, package_deps);
+                relevant_packages.insert(dep_name.to_owned(), dep_entry);
+                resolve_package_deps(dom, dep, index, relevant_packages, package_deps);
             }
         };
     }
+}
+
+fn write_package_meta_files(
+    package_name: &str,
+    package_deps: &WallyDependencies,
+    package_root: &PathBuf,
+) -> anyhow::Result<()> {
+    let mut package_root = package_root.clone();
+    package_root.push("default.project.json");
+
+    let project_file = build_project_file(package_name);
+    fs::write(&package_root, project_file)?;
+
+    package_root.pop();
+    package_root.push("wally.toml");
+
+    let wally_file = build_wally_manifest(package_name, CORE_PACKAGES_VERSION, package_deps);
+    fs::write(&package_root, wally_file)?;
+
+    Ok(())
 }
 
 fn output_extracted_deps(dom: &WeakDom, deps: &BTreeMap<String, &Instance>) {

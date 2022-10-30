@@ -1,5 +1,6 @@
 use std::{collections::VecDeque, fs, path::PathBuf};
 
+use convert_case::{Case, Casing};
 use full_moon::{
     ast::{Call, Expression, FunctionArgs, Index, Suffix, Value, Var},
     tokenizer::TokenType,
@@ -9,6 +10,9 @@ use rbx_dom_weak::{
     types::{Ref, Variant},
     Instance, WeakDom,
 };
+use serde_json::json;
+
+use crate::wally_types::{WallyConfig, WallyConfigPackage, WallyDependencies};
 
 // Don't ask me why but, while the vast-majority of modules are MIT, there's a small handful
 // which are just arbitrarily Apache 2.0, for some reason.
@@ -27,6 +31,11 @@ const ALLOWED_MODULES: [&str; 3] = [
     "Packages._Index.Math.Math.clz32",
     "Packages._Index.ReactRoblox-9c8468d8-8a7220fd.ReactRoblox.ReactReconciler.roblox",
 ];
+
+// We want to manually rename some packages for better discovery
+static PACKAGE_NAME_OVERRIDES: phf::Map<&'static str, &'static str> = phf_map! {
+    // "RoactCompat" => "Roact17",
+};
 
 // Any module that needs to be rewritten should be included here
 static SOURCE_REPLACEMENTS: phf::Map<&'static str, &'static str> = phf_map! {
@@ -230,6 +239,42 @@ pub fn get_script_details(dom: &WeakDom, instance: &Instance) -> (usize, bool) {
     (loc, licensed)
 }
 
+pub fn build_project_file(package_name: &str) -> String {
+    let package_name = fix_package_name(package_name);
+    let project = json!({
+        "name": package_name,
+        "tree": {
+            "$path": "src/"
+        }
+    });
+
+    serde_json::to_string_pretty(&project).unwrap()
+}
+
+pub fn build_wally_manifest(
+    package_name: &str,
+    package_version: &str,
+    package_deps: &WallyDependencies,
+) -> String {
+    let package_name = fix_package_name(package_name);
+    let package_name = package_name.to_case(Case::Camel);
+
+    let package = WallyConfig {
+        package: WallyConfigPackage {
+            name: format!("core-packages/{package_name}"),
+            description: "https://github.com/grilme99/CorePackages".into(),
+            version: package_version.into(),
+            license: "MIT + Apache 2.0".into(),
+            authors: vec!["Roblox".into(), "Brooke Rhodes <brooke@gril.me>".into()],
+            registry: "https://github.com/UpliftGames/wally-index".into(),
+            realm: "shared".into(),
+        },
+        dependencies: package_deps.to_owned(),
+    };
+
+    toml::to_string_pretty(&package).unwrap()
+}
+
 const IGNORED_INSTANCE_NAMES: [&str; 1] = [".robloxrc"];
 
 /// Recursively write an instance and all of its descendants to the file system
@@ -313,4 +358,11 @@ fn get_script_extension_from_class(class: &str) -> &str {
         "ModuleScript" => ".lua",
         _ => unreachable!(),
     }
+}
+
+pub fn fix_package_name(name: &str) -> &str {
+    let name = PACKAGE_NAME_OVERRIDES.get(name).unwrap_or(&name);
+
+    // Anything after a `-` in the package name is a version hash, which we don't want
+    name.split("-").next().unwrap()
 }
