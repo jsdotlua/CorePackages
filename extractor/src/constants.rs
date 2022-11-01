@@ -47,6 +47,4 @@ pub const ALLOWED_MODULES: [&str; 5] = [
 pub static SOURCE_REPLACEMENTS: phf::Map<&'static str, &'static str> = phf_map! {
     "Scheduler/getJestMatchers.roblox.lua" =>
         include_str!("../resources/sourceReplacements/getJestMatchers.roblox.lua"),
-    // "Packages._Index.RoactProxy.RoactProxy" =>
-    //     include_str!("../resources/sourceReplacements/RoactProxy.lua"),
 };

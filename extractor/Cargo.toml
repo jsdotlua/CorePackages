@@ -1,6 +1,6 @@
 [package]
 name = "extractor"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 [lib]
@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.65"
+clap = { version = "4.0.18", features = ["derive"] }
 console = "0.15.2"
 convert_case = "0.6.0"
 derive_more = "0.99.17"
