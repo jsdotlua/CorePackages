@@ -36,7 +36,7 @@ My primary motivator for this project has been Roblox's Roact17, a direct transp
 
 Roact17 is the technology powering Roblox's universal Lua app and (soon) Studio's built-in Lua plugins.
 
-Roact17 is available on Wally [here](https://wally.run/package/core-packages/roactCompat).
+Roact17 is available on Wally [here](https://wally.run/package/core-packages/roact-compat).
 
 ## GraphQL and Apollo
 

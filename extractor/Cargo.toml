@@ -1,16 +1,25 @@
 [package]
 name = "extractor"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
+
+[lib]
+name = "libextractor"
+path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.65"
+clap = { version = "4.0.18", features = ["derive"] }
 console = "0.15.2"
 convert_case = "0.6.0"
+derive_more = "0.99.17"
 full_moon = { version = "0.16.2", features = ["roblox"] }
 phf = { version = "0.11", features = ["macros"] }
 rbx_binary = "0.6.6"
 rbx_dom_weak = "2.4.0"
+roblox_install = "1.0.0"
+semver = { version = "1.0.14", features = ["serde"] }
 serde = { version = "1.0.147", features = ["derive"] }
 serde_json = "1.0.87"
 toml = "0.5.9"
+walkdir = "2.3.2"
