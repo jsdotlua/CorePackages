@@ -5,7 +5,7 @@ use console::style;
 use serde_json::json;
 
 use crate::{
-    constants::{BANNED_PACKAGE_NAMES, DEPENDENCY_VERSION_ALIASES},
+    constants::{BANNED_PACKAGE_NAMES, DEPENDENCY_ALIASES},
     domain::{PackageMeta, PackageName, WallyConfig, WallyConfigPackage},
 };
 
@@ -67,7 +67,7 @@ fn write_wally_file(
         .dependency_thunk_names
         .iter()
         .map(|(package_name, thunk_name)| {
-            if DEPENDENCY_VERSION_ALIASES.contains_key(package_name) {
+            if DEPENDENCY_ALIASES.contains_key(package_name) {
                 (package_name.to_string(), thunk_name.to_owned())
             } else {
                 let package = package_registry
@@ -110,7 +110,7 @@ fn write_wally_file(
 
 fn write_project_file(path: &PathBuf, package_meta: &PackageMeta) -> anyhow::Result<()> {
     let project = json!({
-        "name": package_meta.true_name,
+        "name": package_meta.wally_complaint_name,
         "tree": {
             "$path": "src/"
         }

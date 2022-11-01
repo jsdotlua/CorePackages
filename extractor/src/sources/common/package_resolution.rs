@@ -6,9 +6,10 @@ use std::str::FromStr;
 
 use anyhow::Context;
 use convert_case::{Case, Casing};
+use semver::Version;
 use walkdir::WalkDir;
 
-use crate::constants::{BANNED_PACKAGE_NAMES, DEPENDENCY_VERSION_ALIASES};
+use crate::constants::{BANNED_PACKAGE_NAMES, DEPENDENCY_ALIASES, PACKAGE_VERSION_OVERRIDES};
 use crate::domain::{License, PackageMeta, PackageName, WallyLock};
 
 use super::source_utils::{get_file_source, infer_script_license};
@@ -47,7 +48,7 @@ pub fn populate_package_registry(
 
     for (package_name, index_path) in index_paths {
         if BANNED_PACKAGE_NAMES.contains(&&*package_name)
-            && !DEPENDENCY_VERSION_ALIASES.contains_key(&&*package_name)
+            && !DEPENDENCY_ALIASES.contains_key(&&*package_name)
         {
             println!("WARN: Found blocked package {package_name}. Skipping.");
             continue;
@@ -67,7 +68,7 @@ pub fn populate_package_registry(
         let dependency_thunk_names = dependencies
             .iter()
             .map(|(package_name, path)| {
-                if let Some(alias) = DEPENDENCY_VERSION_ALIASES.get(package_name) {
+                if let Some(alias) = DEPENDENCY_ALIASES.get(package_name) {
                     (package_name.to_owned(), alias.to_string())
                 } else {
                     let thunk_name = path.file_name().expect("file name").to_str().unwrap();
@@ -78,11 +79,17 @@ pub fn populate_package_registry(
             })
             .collect::<BTreeMap<PackageName, String>>();
 
+        let version = if let Some(version) = PACKAGE_VERSION_OVERRIDES.get(&package_name) {
+            Version::from_str(version).unwrap()
+        } else {
+            package_lock.version
+        };
+        
         let package_meta = PackageMeta {
             thunk_name: PackageName(package_name.clone()),
             true_name: true_name.to_owned(),
             wally_complaint_name: true_name.to_case(Case::Kebab),
-            version: package_lock.version,
+            version,
             dependencies: dependencies.into_keys().collect::<Vec<PackageName>>(),
             dependency_thunk_names,
             lines_of_code: loc,
