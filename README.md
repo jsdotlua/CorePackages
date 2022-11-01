@@ -10,8 +10,6 @@
 
 **A collection of Roblox's MIT and Apache2-licensed CorePackages, automatically prepared for [Wally](https://wally.run).**
 
-🚧 This project is still under heavy construction! 🚧
-
 </div>
 
 ## About
