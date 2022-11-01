@@ -18,6 +18,7 @@ impl CorePackageSource for LocalPackageSource {
     fn extract_packages(
         extract_to: &PathBuf,
         root_packages: &Vec<PackageName>,
+        bypass_license_check: &bool,
     ) -> anyhow::Result<()> {
         let mut package_registry = PackageRegistry::new();
 
@@ -36,26 +37,27 @@ impl CorePackageSource for LocalPackageSource {
         // Next, go through provided root packages and work out if each package can be included
         // (using license information of all dependencies). If any package can't be included,
         // error out early (just to be safe).
-        #[cfg(not(feature = "bypass_license_check"))]
-        for thunk_name in root_packages {
-            println!("Checking root package {thunk_name:?} license");
+        if !bypass_license_check {
+            for thunk_name in root_packages {
+                println!("Checking root package {thunk_name:?} license");
 
-            let (licensed, unlicensed_files) = package_registry
-                .is_package_licensed(&thunk_name)
-                .context("Failed to check if package is licensed")?;
+                let (licensed, unlicensed_files) = package_registry
+                    .is_package_licensed(&thunk_name)
+                    .context("Failed to check if package is licensed")?;
 
-            if !licensed {
-                let mut message = format!("Package {thunk_name:?} contains unlicensed code:");
-                message.push_str("\n\n");
-                message.push_str(
-                    &unlicensed_files
-                        .iter()
-                        .map(|i| i.to_str().unwrap())
-                        .collect::<Vec<&str>>()
-                        .join("\n"),
-                );
+                if !licensed {
+                    let mut message = format!("Package {thunk_name:?} contains unlicensed code:");
+                    message.push_str("\n\n");
+                    message.push_str(
+                        &unlicensed_files
+                            .iter()
+                            .map(|i| i.to_str().unwrap())
+                            .collect::<Vec<&str>>()
+                            .join("\n"),
+                    );
 
-                bail!(message);
+                    bail!(message);
+                }
             }
         }
 
@@ -100,7 +102,7 @@ impl LocalPackageSource {
     ) -> anyhow::Result<()> {
         let package = package_registry
             .get_package(thunk_name)
-            .context("Package does not exist in registry")?;
+            .context(format!("Package {thunk_name:?} does not exist in registry"))?;
 
         for thunk_name in &package.dependencies {
             if packages_to_write.contains_key(thunk_name) {

@@ -21,5 +21,6 @@ pub trait CorePackageSource {
     fn extract_packages(
         extract_to: &PathBuf,
         root_packages: &Vec<PackageName>,
+        bypass_license_check: &bool,
     ) -> anyhow::Result<()>;
 }
