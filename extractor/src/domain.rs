@@ -4,7 +4,7 @@ use derive_more::Deref;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use crate::constants::DEPENDENCY_VERSION_ALIASES;
+use crate::constants::DEPENDENCY_ALIASES;
 
 #[derive(Debug, Deref, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PackageName(pub String);
@@ -53,7 +53,7 @@ pub struct PackageMeta {
 impl PackageMeta {
     pub fn contains_unlicensed_code(&self) -> bool {
         // Bypass license check for overwritten dependencies ONLY.
-        if DEPENDENCY_VERSION_ALIASES.contains_key(self.thunk_name.as_str()) {
+        if DEPENDENCY_ALIASES.contains_key(self.thunk_name.as_str()) {
             return false;
         }
 

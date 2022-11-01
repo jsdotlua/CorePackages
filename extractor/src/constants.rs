@@ -21,9 +21,13 @@ pub const BANNED_PACKAGE_NAMES: [&str; 15] = [
     "Shared-04005deb-0fbbfa70",
 ];
 
-pub static DEPENDENCY_VERSION_ALIASES: phf::Map<&'static str, &'static str> = phf_map! {
+pub static DEPENDENCY_ALIASES: phf::Map<&'static str, &'static str> = phf_map! {
     "Promise" => "evaera/promise@4.0.0",
     "Cryo" => "freddylist/llama@1.1.1",
+};
+
+pub static PACKAGE_VERSION_OVERRIDES: phf::Map<&'static str, &'static str> = phf_map! {
+    "RoactCompat-9c8468d8-8a7220fd" => "17.0.1-rc.16.1",
 };
 
 pub const MIT_LICENSE_PHRASES: [&str; 2] = [
@@ -47,4 +51,6 @@ pub const ALLOWED_MODULES: [&str; 5] = [
 pub static SOURCE_REPLACEMENTS: phf::Map<&'static str, &'static str> = phf_map! {
     "Scheduler/getJestMatchers.roblox.lua" =>
         include_str!("../resources/sourceReplacements/getJestMatchers.roblox.lua"),
+    "RoactCompat-9c8468d8-8a7220fd/RoactCompat/init.lua" =>
+        include_str!("../resources/sourceReplacements/RoactCompat.lua"),
 };
