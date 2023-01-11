@@ -1,0 +1,3 @@
+[submodule "extractor/datasets/modules/license-list-data"]
+	path = extractor/datasets/modules/license-list-data
+	url = https://github.com/spdx/license-list-data
