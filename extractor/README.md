@@ -28,7 +28,7 @@ This program is designed to run autonomously every Roblox release. It works in m
 
 To maintain legality, it is essential that the extractor correctly parses package licenses. As mentioned above, the extractor will attempt to match source license headers to a known license. If this cannot be done with above 95% certainty then the package *will not* be included in this public repository.
 
-The dataset of known license headers that are matched against is located at [`/datasets/license_headers.json`](/datasets/license_headers.json).
+The dataset of known license headers that are matched against is located at [`datasets/license_headers.json`](datasets/license_headers.json).
 
 If a package has dependencies (direct or transient) that are not appropriately licensed, then that package will also not be included. The extractor will automatically output information about packages that *are* appropriately licensed, but are blocked by a dependency from being included.
 
