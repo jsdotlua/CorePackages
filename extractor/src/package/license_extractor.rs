@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::Context;
-use askalono::Store;
+use askalono::{ScanMode, ScanStrategy, Store};
 
 use super::{ScriptLicense, ScriptLicenses};
 
@@ -15,6 +15,14 @@ pub fn compute_license_information(
     license_store: &Store,
 ) -> anyhow::Result<ScriptLicenses> {
     let mut licenses: BTreeMap<ScriptLicense, Vec<PathBuf>> = BTreeMap::new();
+
+    let strategy = ScanStrategy::new(license_store)
+        .mode(ScanMode::TopDown)
+        .confidence_threshold(0.0)
+        .shallow_limit(0.95)
+        .optimize(true)
+        .max_passes(5)
+        .step_size(1);
 
     for entry in walkdir::WalkDir::new(src_path) {
         if let Ok(entry) = entry {
@@ -42,14 +50,15 @@ pub fn compute_license_information(
                 ScriptLicense::Unlicensed
             } else {
                 // Script has a license header
-                let matched = license_store.analyze(&license_header.into());
-                // let license = if matched.score > 0.8 {
-                //     ScriptLicense::Licensed(matched.name.to_owned())
-                // } else {
-                //     ScriptLicense::Unlicensed
-                // };
+                let scan_result = strategy
+                    .scan(&license_header.into())
+                    .context("Failed to scan license header")?;
 
-                ScriptLicense::Licensed(matched.name.to_owned())
+                if let Some(license) = scan_result.license {
+                    ScriptLicense::Licensed(license.name.to_owned())
+                } else {
+                    ScriptLicense::Unlicensed
+                }
             };
 
             if let Some(license_record) = licenses.get_mut(&license) {
