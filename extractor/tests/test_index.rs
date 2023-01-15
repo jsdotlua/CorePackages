@@ -2,6 +2,10 @@
 
 use std::path::Path;
 
+#[cfg(feature = "check-licenses")]
+use extractor::package::license_extractor::{
+    PackageLicense, ScriptLicense, UnlicensedPackageReason,
+};
 use extractor::{package::package_lock::LockDependency, package_registry::PackageRegistry};
 
 const TEST_INDEX_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test_index");
@@ -62,8 +66,6 @@ fn lock_dependencies_exist_in_registry() {
 #[test]
 #[cfg(feature = "check-licenses")]
 fn mit_license_variations_parsed_correctly() {
-    use extractor::package::license_extractor::ScriptLicense;
-
     let registry = create_registry();
 
     let (_, chalk) = registry.find_by_registry_name("chalk-lua").unwrap();
@@ -80,8 +82,6 @@ fn mit_license_variations_parsed_correctly() {
 #[test]
 #[cfg(feature = "check-licenses")]
 fn unlicensed_packages_discovered_correctly() {
-    use extractor::package::license_extractor::ScriptLicense;
-
     let registry = create_registry();
 
     let (_, diff_sequences) = registry.find_by_registry_name("diff-sequences").unwrap();
@@ -97,4 +97,62 @@ fn unlicensed_packages_discovered_correctly() {
     // Only one license should exist for LuauPolyfill
     assert_eq!(licenses.keys().len(), 1);
     assert_eq!(licenses.contains_key(&ScriptLicense::Unlicensed), true);
+}
+
+#[test]
+#[cfg(feature = "check-licenses")]
+fn licensed_package_with_no_deps_is_licensed() {
+    let registry = create_registry();
+
+    let (_, polyfill) = registry.find_by_registry_name("luau-polyfill").unwrap();
+
+    assert_eq!(
+        polyfill.is_package_licensed(&registry).unwrap(),
+        PackageLicense::Licensed(vec!["MIT".into()])
+    );
+}
+
+#[test]
+#[cfg(feature = "check-licenses")]
+fn unlicensed_package_not_licensed() {
+    let registry = create_registry();
+
+    let (_, diff_sequences) = registry.find_by_registry_name("diff-sequences").unwrap();
+
+    assert_eq!(
+        diff_sequences.is_package_licensed(&registry).unwrap(),
+        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedScripts(vec!["/Users/brooke/Documents/Projects/Roact17/extractor/test_index/DiffSequences-edcba0e9-3.2.1/src/init.lua".into()]))
+    );
+}
+
+#[test]
+#[cfg(feature = "check-licenses")]
+fn licensed_package_with_direct_unlicensed_dependency_is_unlicensed() {
+    let registry = create_registry();
+
+    let (_, jest) = registry.find_by_registry_name("jest-circus").unwrap();
+
+    assert_eq!(
+        jest.is_package_licensed(&registry).unwrap(),
+        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![
+            ("diff-sequences".into(), "3.2.1".into(), UnlicensedPackageReason::UnlicensedScripts(vec!["/Users/brooke/Documents/Projects/Roact17/extractor/test_index/DiffSequences-edcba0e9-3.2.1/src/init.lua".into()]))
+        ]))
+    );
+}
+
+#[test]
+#[cfg(feature = "check-licenses")]
+fn licensed_package_with_transient_unlicensed_dependency_is_unlicensed() {
+    let registry = create_registry();
+
+    let (_, chalk) = registry.find_by_registry_name("chalk-lua").unwrap();
+
+    assert_eq!(
+        chalk.is_package_licensed(&registry).unwrap(),
+        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![
+            ("jest-circus".into(), "3.2.1".into(), UnlicensedPackageReason::UnlicensedDependencies(vec![
+                ("diff-sequences".into(), "3.2.1".into(), UnlicensedPackageReason::UnlicensedScripts(vec!["/Users/brooke/Documents/Projects/Roact17/extractor/test_index/DiffSequences-edcba0e9-3.2.1/src/init.lua".into()]))
+            ]))
+        ]))
+    );
 }

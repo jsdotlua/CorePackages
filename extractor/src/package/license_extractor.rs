@@ -121,7 +121,7 @@ fn compute_header_license(license_header: &str) -> ScriptLicense {
 
     for (license_name, texts) in LICENSE_TEXTS.iter() {
         for text in texts {
-            let score = header_text_data.match_score(text);
+            let (_, score) = header_text_data.optimize_bounds(text);
 
             if score > highest_score {
                 top_license = ScriptLicense::Licensed(license_name.to_owned());

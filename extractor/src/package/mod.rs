@@ -61,7 +61,7 @@ impl Package {
 
     /// Returns whether a package is appropriately licensed.
     #[cfg(feature = "check-licenses")]
-    fn is_package_licensed(
+    pub fn is_package_licensed(
         &self,
         package_registry: &PackageRegistry,
     ) -> anyhow::Result<PackageLicense> {
@@ -75,31 +75,28 @@ impl Package {
 
         // This package doesn't directly contain unlicensed scripts. Check dependencies now.
         let mut unlicensed_dependencies = Vec::new();
-        let dependencies = self
-            .lock
-            .parse_lock_dependencies()
-            .context("Failed to parse lock dependencies")?;
+        if let Ok(dependencies) = self.lock.parse_lock_dependencies() {
+            for lock_dependency in dependencies {
+                let dep_name = lock_dependency.registry_name.to_owned();
+                let version = lock_dependency.version.to_owned();
 
-        for lock_dependency in dependencies {
-            let dep_name = lock_dependency.registry_name.to_owned();
-            let version = lock_dependency.version.to_owned();
-
-            let (_, package) =
-                package_registry
-                    .find_by_registry_name(&dep_name)
-                    .context(format!(
+                let (_, package) =
+                    package_registry
+                        .find_by_registry_name(&dep_name)
+                        .context(format!(
                         "Dependency ({dep_name}) from lock file does not exist in package registry"
                     ))?;
 
-            let package_license =
-                package
-                    .is_package_licensed(package_registry)
-                    .context(format!(
-                        "Failed to check if dependency {dep_name} is licensed"
-                    ))?;
+                let package_license =
+                    package
+                        .is_package_licensed(package_registry)
+                        .context(format!(
+                            "Failed to check if dependency {dep_name} is licensed"
+                        ))?;
 
-            if let PackageLicense::Unlicensed(reason) = package_license {
-                unlicensed_dependencies.push((dep_name, version, reason));
+                if let PackageLicense::Unlicensed(reason) = package_license {
+                    unlicensed_dependencies.push((dep_name, version, reason));
+                }
             }
         }
 
