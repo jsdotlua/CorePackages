@@ -26,7 +26,7 @@ fn all_packages_discovered() {
 fn lock_dependencies_are_parsed() {
     let registry = create_registry();
 
-    let (_, diff_sequences) = registry.find_by_registry_name("DiffSequences").unwrap();
+    let (_, diff_sequences) = registry.find_by_registry_name("diff-sequences").unwrap();
     let deps = &diff_sequences.lock.parse_lock_dependencies().unwrap();
 
     assert_eq!(deps.len(), 1);
@@ -43,8 +43,8 @@ fn lock_dependencies_are_parsed() {
 #[test]
 fn lock_dependencies_exist_in_registry() {
     let registry = create_registry();
-
-    let (_, diff_sequences) = registry.find_by_registry_name("DiffSequences").unwrap();
+    println!("{:?}", registry.packages);
+    let (_, diff_sequences) = registry.find_by_registry_name("diff-sequences").unwrap();
     let deps = &diff_sequences.lock.parse_lock_dependencies().unwrap();
 
     assert_eq!(deps.len(), 1);

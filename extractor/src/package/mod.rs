@@ -119,11 +119,13 @@ fn compute_license_information(
                 .context(format!("Failed to read script to string: {path:?}"))?;
 
             let matched = license_store.analyze(&script_source.into());
-            let license = if matched.score > 0.8 {
-                ScriptLicense::Licensed(matched.name.to_owned())
-            } else {
-                ScriptLicense::Unlicensed
-            };
+            // let license = if matched.score > 0.8 {
+            //     ScriptLicense::Licensed(matched.name.to_owned())
+            // } else {
+            //     ScriptLicense::Unlicensed
+            // };
+
+            let license = ScriptLicense::Licensed(matched.name.to_owned());
 
             if let Some(license_record) = licenses.get_mut(&license) {
                 license_record.push(path.to_owned());

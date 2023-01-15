@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use anyhow::Context;
+use convert_case::{Case, Casing};
 
 use super::package_lock::PackageLock;
 
@@ -25,10 +26,12 @@ impl PackageName {
             .map(|name| name.to_string_lossy().into_owned())
             .context("Failed to get file name from package path")?;
 
+        // Wally requires that all packages are kebab-case
+        let name = lock.name.to_case(Case::Kebab);
+
         // Some Rotriever packages are scoped and others aren't. Wally only supports one scope, and we're using that for
         // `core-packages`. Convert the Rotriever scope into a prefix. For example, `roblox/lumberyak` becomes
         // `roblox-lumberyak`.
-        let name = lock.name.to_lowercase();
         let registry_name = name.replace("/", "-");
 
         let (scope, scoped_name) = if name.contains("/") {
