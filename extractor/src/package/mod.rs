@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{bail, Context};
 
@@ -65,8 +65,9 @@ impl Package {
     }
 }
 
+#[cfg(feature = "check-licenses")]
 fn get_package_src_path(
-    package_path: &Path,
+    package_path: &std::path::Path,
     package_name: &PackageName,
 ) -> anyhow::Result<PathBuf> {
     let src_path = package_path.join("src");
