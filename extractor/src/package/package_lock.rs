@@ -115,7 +115,7 @@ mod tests {
         assert_eq!(deps.len(), 2);
 
         let dep_1 = LockDependency {
-            registry_name: "LuauPolyfill".into(),
+            registry_name: "luau-polyfill".into(),
             path_name: "LuauPolyfill".into(),
             version: "1.1.0".into(),
         };
@@ -123,7 +123,7 @@ mod tests {
         assert_eq!(*deps.get(0).unwrap(), dep_1);
 
         let dep_2 = LockDependency {
-            registry_name: "Promise".into(),
+            registry_name: "promise".into(),
             path_name: "Promise".into(),
             version: "8c520dea".into(),
         };

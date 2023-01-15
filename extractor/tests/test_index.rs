@@ -32,7 +32,7 @@ fn lock_dependencies_are_parsed() {
     assert_eq!(deps.len(), 1);
 
     let polyfill_dep = LockDependency {
-        registry_name: "LuauPolyfill".into(),
+        registry_name: "luau-polyfill".into(),
         path_name: "LuauPolyfill".into(),
         version: "1.1.0".into(),
     };
