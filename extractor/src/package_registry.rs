@@ -1,8 +1,6 @@
 use std::{collections::HashMap, fs, path::Path};
 
 use anyhow::Context;
-#[cfg(feature = "check-licenses")]
-use askalono::Store;
 use derive_more::Deref;
 
 use crate::package::Package;
@@ -15,37 +13,13 @@ pub struct PackageRef(u32);
 pub struct PackageRegistry {
     pub packages: HashMap<PackageRef, Package>,
     pub package_count: u32,
-
-    #[cfg(feature = "check-licenses")]
-    license_store: Store,
 }
 
 impl PackageRegistry {
     pub fn new() -> anyhow::Result<Self> {
-        #[cfg(feature = "check-licenses")]
-        let license_store = {
-            let mut store = Store::new();
-
-            log::info!("Loading SPDX data, this may take a while...");
-            store
-                .load_spdx(
-                    Path::new(concat!(
-                        env!("CARGO_MANIFEST_DIR"),
-                        "/datasets/modules/license-list-data/json/details"
-                    )),
-                    false,
-                )
-                .context("Failed to load SPDX data")?;
-
-            store
-        };
-
         Ok(Self {
             packages: HashMap::new(),
             package_count: 0,
-
-            #[cfg(feature = "check-licenses")]
-            license_store,
         })
     }
 
@@ -88,12 +62,8 @@ impl PackageRegistry {
                 }
 
                 // Package constructor can take it from here
-                let package = Package::new(
-                    path.to_owned(),
-                    #[cfg(feature = "check-licenses")]
-                    &self.license_store,
-                )
-                .context(format!("Failed to create package from path {path:?}"))?;
+                let package = Package::new(path.to_owned())
+                    .context(format!("Failed to create package from path {path:?}"))?;
 
                 log::debug!("Discovered package: {}", package.name.path_name);
 

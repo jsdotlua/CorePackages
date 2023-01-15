@@ -20,6 +20,8 @@ fn create_registry() -> PackageRegistry {
 fn all_packages_discovered() {
     let registry = create_registry();
     assert_eq!(registry.package_count, 3);
+
+    panic!("boo")
 }
 
 #[test]

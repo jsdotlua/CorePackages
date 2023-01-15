@@ -1,15 +1,13 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context};
-#[cfg(feature = "check-licenses")]
-use askalono::Store;
 
 use self::{package_lock::PackageLock, package_name::PackageName};
 
-pub mod package_lock;
-pub mod package_name;
 #[cfg(feature = "check-licenses")]
 pub mod license_extractor;
+pub mod package_lock;
+pub mod package_name;
 
 #[cfg(feature = "check-licenses")]
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
@@ -34,10 +32,7 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn new(
-        package_path: PathBuf,
-        #[cfg(feature = "check-licenses")] license_store: &Store,
-    ) -> anyhow::Result<Self> {
+    pub fn new(package_path: PathBuf) -> anyhow::Result<Self> {
         let lock_path = package_path.join("lock.toml");
         if !lock_path.exists() {
             bail!("Lock does not exist at path {lock_path:?}");
@@ -54,7 +49,7 @@ impl Package {
             log::info!("Computing licenses for package {}", name.path_name);
 
             let src_path = get_package_src_path(&package_path, &name)?;
-            license_extractor::compute_license_information(&src_path, license_store)
+            license_extractor::compute_license_information(&src_path)
                 .context("Failed to compute license information")
         }?;
 

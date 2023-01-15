@@ -1,28 +1,51 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     fs,
     path::{Path, PathBuf},
 };
 
 use anyhow::Context;
-use askalono::{ScanMode, ScanStrategy, Store};
+use askalono::TextData;
+use lazy_static::lazy_static;
 
 use super::{ScriptLicense, ScriptLicenses};
 
-/// Walks through all source files in the directory and computes license information.
-pub fn compute_license_information(
-    src_path: &Path,
-    license_store: &Store,
-) -> anyhow::Result<ScriptLicenses> {
-    let mut licenses: BTreeMap<ScriptLicense, Vec<PathBuf>> = BTreeMap::new();
+/// Minimum match score for the script license to be considered valid
+const LICENSE_SCORE_THRESHOLD: f32 = 0.95;
 
-    let strategy = ScanStrategy::new(license_store)
-        .mode(ScanMode::TopDown)
-        .confidence_threshold(0.0)
-        .shallow_limit(0.95)
-        .optimize(true)
-        .max_passes(5)
-        .step_size(1);
+const RAW_LICENSE_DATASET: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/datasets/license_headers.json"
+));
+
+type LicenseDataset = HashMap<String, Vec<String>>;
+type LicenseTextData = HashMap<String, Vec<TextData>>;
+
+lazy_static! {
+    static ref LICENSE_DATASET: LicenseDataset =
+        serde_json::from_str(&RAW_LICENSE_DATASET).unwrap();
+}
+
+lazy_static! {
+    static ref LICENSE_TEXTS: LicenseTextData = {
+        LICENSE_DATASET
+            .to_owned()
+            .into_iter()
+            .map(|(license_name, data)| {
+                let data = data
+                    .into_iter()
+                    .map(|string| TextData::from(string))
+                    .collect();
+
+                (license_name, data)
+            })
+            .collect()
+    };
+}
+
+/// Walks through all source files in the directory and computes license information.
+pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLicenses> {
+    let mut licenses: BTreeMap<ScriptLicense, Vec<PathBuf>> = BTreeMap::new();
 
     for entry in walkdir::WalkDir::new(src_path) {
         if let Ok(entry) = entry {
@@ -50,15 +73,7 @@ pub fn compute_license_information(
                 ScriptLicense::Unlicensed
             } else {
                 // Script has a license header
-                let scan_result = strategy
-                    .scan(&license_header.into())
-                    .context("Failed to scan license header")?;
-
-                if let Some(license) = scan_result.license {
-                    ScriptLicense::Licensed(license.name.to_owned())
-                } else {
-                    ScriptLicense::Unlicensed
-                }
+                compute_header_license(&license_header)
             };
 
             if let Some(license_record) = licenses.get_mut(&license) {
@@ -72,15 +87,24 @@ pub fn compute_license_information(
     Ok(licenses)
 }
 
-fn trim_comment_padding(comment: &str) -> String {
-    comment
-        .replace("*", "")
-        .replace("/", "")
-        .replace("\\", "")
-        .replace("--[[", "")
-        .replace("--", "")
-        .trim()
-        .to_owned()
+fn compute_header_license(license_header: &str) -> ScriptLicense {
+    let header_text_data = TextData::from(license_header);
+
+    let mut top_license = ScriptLicense::Unlicensed;
+    let mut highest_score = 0.0;
+
+    for (license_name, texts) in LICENSE_TEXTS.iter() {
+        for text in texts {
+            let score = header_text_data.match_score(text);
+
+            if score > highest_score && score > LICENSE_SCORE_THRESHOLD {
+                top_license = ScriptLicense::Licensed(license_name.to_owned());
+                highest_score = score;
+            }
+        }
+    }
+
+    top_license
 }
 
 /// Attempts to best extract a scripts license header
@@ -130,6 +154,17 @@ fn extract_license_header(source: &str) -> String {
     }
 
     license_parts.join("\n").trim().to_owned()
+}
+
+fn trim_comment_padding(comment: &str) -> String {
+    comment
+        .replace("*", "")
+        .replace("/", "")
+        .replace("\\", "")
+        .replace("--[[", "")
+        .replace("--", "")
+        .trim()
+        .to_owned()
 }
 
 #[cfg(test)]
