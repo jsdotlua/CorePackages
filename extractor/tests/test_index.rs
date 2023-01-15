@@ -62,7 +62,7 @@ fn lock_dependencies_exist_in_registry() {
 #[test]
 #[cfg(feature = "check-licenses")]
 fn mit_license_variations_parsed_correctly() {
-    use extractor::package::ScriptLicense;
+    use extractor::package::license_extractor::ScriptLicense;
 
     let registry = create_registry();
 
@@ -80,7 +80,7 @@ fn mit_license_variations_parsed_correctly() {
 #[test]
 #[cfg(feature = "check-licenses")]
 fn unlicensed_packages_discovered_correctly() {
-    use extractor::package::ScriptLicense;
+    use extractor::package::license_extractor::ScriptLicense;
 
     let registry = create_registry();
 

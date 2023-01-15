@@ -8,8 +8,6 @@ use anyhow::Context;
 use askalono::TextData;
 use lazy_static::lazy_static;
 
-use super::{ScriptLicense, ScriptLicenses};
-
 /// Minimum match score for the script license to be considered valid
 const LICENSE_SCORE_THRESHOLD: f32 = 0.95;
 
@@ -42,6 +40,34 @@ lazy_static! {
             .collect()
     };
 }
+
+/// Described the license status of one script.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ScriptLicense {
+    Licensed(String),
+    Unlicensed,
+}
+
+/// Describes the license status of an entire package.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PackageLicense {
+    /// This entire package is appropriately licensed. Enum contains a vector of all licenses found.
+    Licensed(Vec<String>),
+    /// For some reason the package is unlicensed. Enum contains a reason why.
+    Unlicensed(UnlicensedPackageReason),
+}
+
+/// Describes why exactly a package is unlicensed.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum UnlicensedPackageReason {
+    /// One or more scripts in the package is unlicensed. Enum contains a vector of all script paths that are unlicensed.
+    UnlicensedScripts(Vec<PathBuf>),
+    /// One or more dependencies are unlicensed. Enum contains a vector of all dependencies, their version, and its package
+    /// license that are not licensed.
+    UnlicensedDependencies(Vec<(String, String, UnlicensedPackageReason)>),
+}
+
+pub type ScriptLicenses = std::collections::BTreeMap<ScriptLicense, Vec<PathBuf>>;
 
 /// Walks through all source files in the directory and computes license information.
 pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLicenses> {
