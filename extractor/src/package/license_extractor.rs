@@ -73,6 +73,8 @@ pub type ScriptLicenses = std::collections::BTreeMap<ScriptLicense, Vec<PathBuf>
 pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLicenses> {
     let mut licenses: BTreeMap<ScriptLicense, Vec<PathBuf>> = BTreeMap::new();
 
+    let package_path = src_path.parent().context("Src path contains no parent")?;
+
     for entry in walkdir::WalkDir::new(src_path) {
         if let Ok(entry) = entry {
             let path = entry.path();
@@ -101,6 +103,14 @@ pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLice
                 // Script has a license header
                 compute_header_license(&license_header)
             };
+
+            // Slice off the first part of the path so that it only includes beyond the package root
+            let component_count = package_path.components().count();
+            let path = path
+                .components()
+                .skip(component_count - 1)
+                .map(|i| i.as_os_str())
+                .collect::<PathBuf>();
 
             if let Some(license_record) = licenses.get_mut(&license) {
                 license_record.push(path.to_owned());
