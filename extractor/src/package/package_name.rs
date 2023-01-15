@@ -15,6 +15,9 @@ pub struct PackageName {
     pub scope: Option<String>,
     /// Some Rotriever packages are scoped. If this package is scoped then the package name will be here.
     pub scoped_name: Option<String>,
+
+    /// The original name of the package before we did any processing to it.
+    pub unprocessed_name: String,
 }
 
 impl PackageName {
@@ -49,6 +52,8 @@ impl PackageName {
 
             scope,
             scoped_name,
+
+            unprocessed_name: lock_name.to_owned(),
         })
     }
 }

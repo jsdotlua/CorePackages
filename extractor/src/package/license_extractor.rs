@@ -91,13 +91,13 @@ fn compute_header_license(license_header: &str) -> ScriptLicense {
     let header_text_data = TextData::from(license_header);
 
     let mut top_license = ScriptLicense::Unlicensed;
-    let mut highest_score = 0.0;
+    let mut highest_score = LICENSE_SCORE_THRESHOLD;
 
     for (license_name, texts) in LICENSE_TEXTS.iter() {
         for text in texts {
             let score = header_text_data.match_score(text);
 
-            if score > highest_score && score > LICENSE_SCORE_THRESHOLD {
+            if score > highest_score {
                 top_license = ScriptLicense::Licensed(license_name.to_owned());
                 highest_score = score;
             }

@@ -78,7 +78,7 @@ fn get_package_src_path(
     let name = package_name
         .scoped_name
         .to_owned()
-        .unwrap_or_else(|| package_name.registry_name.to_owned());
+        .unwrap_or_else(|| package_name.unprocessed_name.to_owned());
 
     let alt_src_path = package_path.join(&name);
     if alt_src_path.exists() {
