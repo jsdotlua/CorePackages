@@ -4,6 +4,8 @@ use anyhow::{bail, Context};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
+use super::package_name::PackageName;
+
 /// An easy to consume representation of dependencies in a lock.toml file.
 #[derive(Debug, PartialEq, Eq)]
 pub struct LockDependency {
@@ -61,6 +63,14 @@ impl PackageLock {
                 }
 
                 let version = parts.next().context("Expected version")?;
+
+                // We have special behaviour for parsing registry names
+                // TODO: This should probably be extracted out into a utility function that doesn't require us to create
+                // a temporary path.
+                let package_name = PackageName::new(Path::new("foo"), &registry_name)
+                    .context("Failed to create package name")?;
+
+                let registry_name = package_name.registry_name;
 
                 let dependency = LockDependency {
                     registry_name: registry_name.to_owned(),

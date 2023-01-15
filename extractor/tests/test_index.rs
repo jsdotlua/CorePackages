@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use extractor::{package_registry::PackageRegistry, package::package_lock::LockDependency};
+use extractor::{package::package_lock::LockDependency, package_registry::PackageRegistry};
 
 const TEST_INDEX_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test_index");
 
@@ -30,7 +30,7 @@ fn lock_dependencies_are_parsed() {
     let deps = &diff_sequences.lock.parse_lock_dependencies().unwrap();
 
     assert_eq!(deps.len(), 1);
-    
+
     let polyfill_dep = LockDependency {
         registry_name: "LuauPolyfill".into(),
         path_name: "LuauPolyfill".into(),
@@ -43,14 +43,17 @@ fn lock_dependencies_are_parsed() {
 #[test]
 fn lock_dependencies_exist_in_registry() {
     let registry = create_registry();
-    println!("{:?}", registry.packages);
+
     let (_, diff_sequences) = registry.find_by_registry_name("diff-sequences").unwrap();
     let deps = &diff_sequences.lock.parse_lock_dependencies().unwrap();
 
     assert_eq!(deps.len(), 1);
 
     let polyfill_dep = deps.get(0).unwrap();
-    let (_, luau_polyfill) = registry.find_by_registry_name(&polyfill_dep.registry_name).unwrap();
+
+    let (_, luau_polyfill) = registry
+        .find_by_registry_name(&polyfill_dep.registry_name)
+        .unwrap();
 
     assert_eq!(polyfill_dep.registry_name, luau_polyfill.name.registry_name);
     assert_eq!(polyfill_dep.version, luau_polyfill.lock.version.to_string());

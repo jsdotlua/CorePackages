@@ -47,7 +47,7 @@ impl Package {
             PackageLock::new(&lock_path).context("Failed to parse Rotriever lock.toml file")?;
 
         let name =
-            PackageName::new(&package_path, &lock).context("Failed to parse package name")?;
+            PackageName::new(&package_path, &lock.name).context("Failed to parse package name")?;
 
         #[cfg(feature = "check-licenses")]
         let licenses = {
