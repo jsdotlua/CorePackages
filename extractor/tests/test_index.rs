@@ -124,7 +124,9 @@ fn unlicensed_package_not_licensed() {
 
     assert_eq!(
         diff_sequences.is_package_licensed(&registry).unwrap(),
-        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedScripts(vec!["DiffSequences-edcba0e9-2.4.5/src/init.lua".into()]))
+        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedScripts(vec![
+            "DiffSequences-edcba0e9-2.4.5/src/init.lua".into()
+        ]))
     );
 }
 
@@ -137,9 +139,13 @@ fn licensed_package_with_direct_unlicensed_dependency_is_unlicensed() {
 
     assert_eq!(
         jest.is_package_licensed(&registry).unwrap(),
-        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![
-            ("diff-sequences".into(), "2.4.5".into(), UnlicensedPackageReason::UnlicensedScripts(vec!["DiffSequences-edcba0e9-2.4.5/src/init.lua".into()]))
-        ]))
+        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![(
+            "diff-sequences".into(),
+            "2.4.5".into(),
+            UnlicensedPackageReason::UnlicensedScripts(vec![
+                "DiffSequences-edcba0e9-2.4.5/src/init.lua".into()
+            ])
+        )]))
     );
 }
 
@@ -152,10 +158,16 @@ fn licensed_package_with_transient_unlicensed_dependency_is_unlicensed() {
 
     assert_eq!(
         chalk.is_package_licensed(&registry).unwrap(),
-        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![
-            ("jest-circus".into(), "3.2.1".into(), UnlicensedPackageReason::UnlicensedDependencies(vec![
-                ("diff-sequences".into(), "2.4.5".into(), UnlicensedPackageReason::UnlicensedScripts(vec!["DiffSequences-edcba0e9-2.4.5/src/init.lua".into()]))
-            ]))
-        ]))
+        PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![(
+            "jest-circus".into(),
+            "3.2.1".into(),
+            UnlicensedPackageReason::UnlicensedDependencies(vec![(
+                "diff-sequences".into(),
+                "2.4.5".into(),
+                UnlicensedPackageReason::UnlicensedScripts(vec![
+                    "DiffSequences-edcba0e9-2.4.5/src/init.lua".into()
+                ])
+            )])
+        )]))
     );
 }

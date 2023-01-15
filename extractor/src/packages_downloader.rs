@@ -3,7 +3,7 @@
 //! Thanks to the way Roblox deploys Windows clients, we can speed things up here by only downloading the directory we
 //! need, rather than the entire Studio release.
 
-use std::{path::Path, str::FromStr, io::Cursor};
+use std::{io::Cursor, path::Path, str::FromStr};
 
 use anyhow::{bail, Context};
 use futures::{future, StreamExt};
