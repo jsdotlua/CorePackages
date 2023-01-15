@@ -4,5 +4,5 @@ version = "3.2.1"
 commit = "792ffec6ca98a6d725d25d678d693f486c1d2c75"
 source = "url+https://github.com/roblox/jest-roblox"
 dependencies = [
-    "DiffSequences DiffSequences 3.2.1 url+https://github.com/roblox/luau-polyfill"
+    "DiffSequences DiffSequences 2.4.5 url+https://github.com/roblox/luau-polyfill"
 ]
