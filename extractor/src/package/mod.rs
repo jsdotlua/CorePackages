@@ -6,13 +6,17 @@ use anyhow::{bail, Context};
 use self::license_extractor::{
     PackageLicense, ScriptLicense, ScriptLicenses, UnlicensedPackageReason,
 };
-use self::{package_lock::PackageLock, package_name::PackageName};
+use self::{
+    package_lock::PackageLock, package_name::PackageName, package_tree::compute_package_tree,
+};
 use crate::package_registry::PackageRegistry;
 
 #[cfg(feature = "check-licenses")]
 pub mod license_extractor;
 pub mod package_lock;
 pub mod package_name;
+pub mod package_tree;
+pub mod stream;
 
 /// Represents a LuaPackage. Contains metadata about the package such as license info and dependencies.
 #[derive(Debug)]
@@ -118,6 +122,13 @@ impl Package {
         }
 
         Ok(PackageLicense::Licensed(licenses))
+    }
+
+    pub fn generate_package_tree(
+        &self,
+        package_registry: &PackageRegistry,
+    ) -> anyhow::Result<String> {
+        compute_package_tree(&self, package_registry)
     }
 }
 

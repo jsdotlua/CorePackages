@@ -39,6 +39,7 @@ fn lock_dependencies_are_parsed() {
         registry_name: "luau-polyfill".into(),
         path_name: "LuauPolyfill".into(),
         version: "1.1.0".into(),
+        is_semver_version: true,
     };
 
     assert_eq!(*deps.get(0).unwrap(), polyfill_dep);

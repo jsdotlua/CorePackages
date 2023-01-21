@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{fs, path::Path, str::FromStr};
 
 use anyhow::{bail, Context};
 use semver::Version;
@@ -24,6 +24,9 @@ pub struct LockDependency {
     /// Git commit hash. In the case of a commit hash, an error will be thrown later because they are not supported by
     /// Wally. Any dependency with a commit hash need to be overwritten manually.
     pub version: String,
+
+    /// Indicates that the package version is a proper semver format (probably a Git hash if not).
+    pub is_semver_version: bool,
 }
 
 /// Raw Rotriever lock file as it appears on disk. Has associated utility for parsing dependencies.
@@ -76,6 +79,7 @@ impl PackageLock {
                     registry_name: registry_name.to_owned(),
                     path_name: path_name.to_owned(),
                     version: version.to_owned(),
+                    is_semver_version: Version::from_str(version).is_ok(),
                 };
 
                 dependency_list.push(dependency);
@@ -118,6 +122,7 @@ mod tests {
             registry_name: "luau-polyfill".into(),
             path_name: "LuauPolyfill".into(),
             version: "1.1.0".into(),
+            is_semver_version: true,
         };
 
         assert_eq!(*deps.get(0).unwrap(), dep_1);
@@ -126,6 +131,7 @@ mod tests {
             registry_name: "promise".into(),
             path_name: "Promise".into(),
             version: "8c520dea".into(),
+            is_semver_version: false,
         };
 
         assert_eq!(*deps.get(1).unwrap(), dep_2);

@@ -3,7 +3,7 @@ use std::{env, fs};
 use anyhow::{bail, Context};
 use env_logger::Env;
 use extractor::package_registry::PackageRegistry;
-use extractor::packages_downloader::download_latest_lua_packages;
+// use extractor::packages_downloader::download_latest_lua_packages;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -22,12 +22,12 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let packages_dir = temp_path.join("LuaPackages");
-    if packages_dir.exists() {
-        log::warn!("LuaPackages dir already exists. Removing.");
-        fs::remove_dir_all(&packages_dir).context("Failed to remove LuaPackages dir")?;
-    }
+    // if packages_dir.exists() {
+    //     log::warn!("LuaPackages dir already exists. Removing.");
+    //     fs::remove_dir_all(&packages_dir).context("Failed to remove LuaPackages dir")?;
+    // }
 
-    download_latest_lua_packages(&packages_dir).await.unwrap();
+    // download_latest_lua_packages(&packages_dir).await.unwrap();
 
     let index_path = packages_dir.join("Packages/_Index");
     if !index_path.exists() {
@@ -39,6 +39,11 @@ async fn main() -> anyhow::Result<()> {
     registry
         .discover_packages_at_index(&index_path)
         .context("Failed to discover packages")?;
+
+    println!("\n\nDependency tree for Jest:\n");
+
+    let (_, package) = registry.find_by_path_name("Jest-edcba0e9-3.2.1").unwrap();
+    println!("{}", package.generate_package_tree(&registry)?);
 
     Ok(())
 }

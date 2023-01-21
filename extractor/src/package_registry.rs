@@ -37,6 +37,18 @@ impl PackageRegistry {
             .find(|(_, package)| package.name.registry_name == registry_name)
     }
 
+    /// Find a package in the registry by its registry name and a **specific** version (doesn't do Semver checks)
+    pub fn find_by_registry_name_and_version(
+        &self,
+        registry_name: &str,
+        version: &str,
+    ) -> Option<(&PackageRef, &Package)> {
+        self.packages.iter().find(|(_, package)| {
+            package.name.registry_name == registry_name
+                && package.lock.version.to_string() == version
+        })
+    }
+
     /// Search through an `_Index` directory for packages.
     pub fn discover_packages_at_index(&mut self, index_path: &Path) -> anyhow::Result<()> {
         let entries = fs::read_dir(index_path)
