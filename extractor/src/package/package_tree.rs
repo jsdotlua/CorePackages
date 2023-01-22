@@ -30,14 +30,17 @@ fn compute_package_tree_internal(
     let current_indent = stream.indents.len();
 
     // {SCOPE}/{PACKAGE_NAME} (v{VERSION})
-    stream.write_line(
-        &format!(
-            "core-packages/{} (v{})",
-            package.name.registry_name,
-            package.lock.version.to_string()
-        ),
-        final_package,
+    let mut line = format!(
+        "core-packages/{} (v{})",
+        package.name.registry_name,
+        package.lock.version.to_string()
     );
+
+    if package.is_package_rewritten() {
+        line.push_str(" (rewritten)");
+    }
+
+    stream.write_line(&line, final_package);
 
     if let Ok(dependencies) = package.lock.parse_lock_dependencies() {
         let indent = match final_package {
@@ -50,6 +53,20 @@ fn compute_package_tree_internal(
 
         let mut dependencies = dependencies.iter().peekable();
         while let Some(dependency) = dependencies.next() {
+            if !dependency.is_core_package {
+                // This dependency isn't a core package (probably rewritten), so we can't compute its dependencies.
+                // Insert the dependency into the stream and continue
+                stream.write_line(
+                    &format!(
+                        "{} (v{}) (external)",
+                        dependency.registry_name, dependency.version,
+                    ),
+                    false,
+                );
+
+                continue;
+            }
+
             let (package_ref, package) = registry
                 .find_by_registry_name_and_version(&dependency.registry_name, &dependency.version)
                 .context(format!(
@@ -68,14 +85,14 @@ fn compute_package_tree_internal(
             // This is the last dependency if there is no next dependency, *or* the next dependency has already appeared
             // up the tree
             let is_last_dependency = if let Some(next_dep) = dependencies.peek() {
-                let (dep_ref, _) = registry
-                    .find_by_registry_name_and_version(&next_dep.registry_name, &next_dep.version)
-                    .context(format!(
-                        "Dependency ({} {}) of package {} does not exist in registry (in peek check)",
-                        next_dep.registry_name, next_dep.version, package.name.registry_name
-                    ))?;
+                let search_result = registry
+                    .find_by_registry_name_and_version(&next_dep.registry_name, &next_dep.version);
 
-                previous_packages.contains(dep_ref)
+                if let Some((dep_ref, _)) = search_result {
+                    previous_packages.contains(dep_ref)
+                } else {
+                    false
+                }
             } else {
                 true
             };
