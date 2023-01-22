@@ -4,7 +4,7 @@ use anyhow::{bail, Context};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use super::package_name::PackageName;
+use super::{package_name::PackageName, package_rewrite::resolve_package};
 
 /// An easy to consume representation of dependencies in a lock.toml file.
 #[derive(Debug, PartialEq, Eq)]
@@ -27,6 +27,10 @@ pub struct LockDependency {
 
     /// Indicates that the package version is a proper semver format (probably a Git hash if not).
     pub is_semver_version: bool,
+
+    /// Indicates that the package belongs to the Wally `core-packages/` scope. This is typically only if the dependency
+    /// hasn't been rewritten.
+    pub is_core_package: bool,
 }
 
 /// Raw Rotriever lock file as it appears on disk. Has associated utility for parsing dependencies.
@@ -75,11 +79,15 @@ impl PackageLock {
 
                 let registry_name = package_name.registry_name;
 
+                // Resolve package overwrites
+                let (rewritten, registry_name, version) = resolve_package(&registry_name, version);
+
                 let dependency = LockDependency {
-                    registry_name: registry_name.to_owned(),
+                    registry_name: registry_name,
                     path_name: path_name.to_owned(),
                     version: version.to_owned(),
-                    is_semver_version: Version::from_str(version).is_ok(),
+                    is_semver_version: Version::from_str(&version).is_ok(),
+                    is_core_package: rewritten == false,
                 };
 
                 dependency_list.push(dependency);
@@ -102,9 +110,8 @@ mod tests {
 
     use super::PackageLock;
 
-    #[test]
-    fn parses_lock_dependencies() {
-        let lock = PackageLock {
+    fn make_lock() -> PackageLock {
+        PackageLock {
             name: "Emittery".into(),
             version: Version::from_str("3.2.1").unwrap(),
             commit: "792ffec6ca98a6d725d25d678d693f486c1d2c75".into(),
@@ -113,27 +120,40 @@ mod tests {
                 "LuauPolyfill LuauPolyfill 1.1.0 url+https://github.com/roblox/luau-polyfill".into(),
                 "Promise <patched> Promise 8c520dea git+https://github.com/roblox/promise-upgrade#v0.1.0".into(),
             ])
-        };
+        }
+    }
 
+    #[test]
+    fn parses_lock_dependencies() {
+        let lock = make_lock();
         let deps = lock.parse_lock_dependencies().unwrap();
         assert_eq!(deps.len(), 2);
 
-        let dep_1 = LockDependency {
+        let dep = LockDependency {
             registry_name: "luau-polyfill".into(),
             path_name: "LuauPolyfill".into(),
             version: "1.1.0".into(),
             is_semver_version: true,
+            is_core_package: true,
         };
 
-        assert_eq!(*deps.get(0).unwrap(), dep_1);
+        assert_eq!(*deps.get(0).unwrap(), dep);
+    }
 
-        let dep_2 = LockDependency {
-            registry_name: "promise".into(),
+    #[test]
+    fn rewrites_package_dependencies() {
+        let lock = make_lock();
+        let deps = lock.parse_lock_dependencies().unwrap();
+        assert_eq!(deps.len(), 2);
+
+        let dep = LockDependency {
+            registry_name: "evaera/promise".into(),
             path_name: "Promise".into(),
-            version: "8c520dea".into(),
-            is_semver_version: false,
+            version: "4.0.0".into(),
+            is_semver_version: true,
+            is_core_package: false,
         };
 
-        assert_eq!(*deps.get(1).unwrap(), dep_2);
+        assert_eq!(*deps.get(1).unwrap(), dep);
     }
 }

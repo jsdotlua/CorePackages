@@ -11,9 +11,9 @@ use lazy_static::lazy_static;
 /// Minimum match score for the script license to be considered valid
 const LICENSE_SCORE_THRESHOLD: f32 = 0.95;
 
-const RAW_LICENSE_DATASET: &str = include_str!(concat!(
+const RAW_LICENSE_DATASET: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/datasets/license_headers.json"
+    "/resources/datasets/license_headers.json"
 ));
 
 type LicenseDataset = HashMap<String, Vec<String>>;

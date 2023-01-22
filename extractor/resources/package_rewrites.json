@@ -1,0 +1,13 @@
+{
+  "Promise": {
+    "newSource": "evaera/promise",
+    "newVersion": "4.0.0",
+    "originals": [
+      {
+        "name": "promise",
+        "version": "8c520dea",
+        "description": "Roblox's internal (unlicensed) Promise upgrade flag package, lives at https://github.com/roblox/promise-upgrade"
+      }
+    ]
+  }
+}

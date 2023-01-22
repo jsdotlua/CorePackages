@@ -7,7 +7,8 @@ use self::license_extractor::{
     PackageLicense, ScriptLicense, ScriptLicenses, UnlicensedPackageReason,
 };
 use self::{
-    package_lock::PackageLock, package_name::PackageName, package_tree::compute_package_tree,
+    package_lock::PackageLock, package_name::PackageName, package_rewrite::resolve_package,
+    package_tree::compute_package_tree,
 };
 use crate::package_registry::PackageRegistry;
 
@@ -15,8 +16,22 @@ use crate::package_registry::PackageRegistry;
 pub mod license_extractor;
 pub mod package_lock;
 pub mod package_name;
+pub mod package_rewrite;
 pub mod package_tree;
 pub mod stream;
+
+#[derive(Debug)]
+pub enum IncludeInEmit {
+    Included,
+    NotIncluded(NotIncludedReason),
+}
+
+#[derive(Debug)]
+pub enum NotIncludedReason {
+    OverwrittenPackage,
+    #[cfg(feature = "check-licenses")]
+    Unlicensed(UnlicensedPackageReason),
+}
 
 /// Represents a LuaPackage. Contains metadata about the package such as license info and dependencies.
 #[derive(Debug)]
@@ -122,6 +137,36 @@ impl Package {
         }
 
         Ok(PackageLicense::Licensed(licenses))
+    }
+
+    /// Returns if this package is rewritten as another package in dependencies. It shouldn't be included in the archive
+    /// if so.
+    pub fn is_package_rewritten(&self) -> bool {
+        let (rewritten, _, _) =
+            resolve_package(&self.name.registry_name, &self.lock.version.to_string());
+
+        rewritten
+    }
+
+    /// Returns if it's OK to include this package in the extractors emit. This always runs, but some checks can be
+    /// disabled via compiler feature flags.
+    pub fn include_in_extractor_emit(
+        &self,
+        #[cfg(feature = "check-licenses")] package_registry: &PackageRegistry,
+    ) -> IncludeInEmit {
+        if self.is_package_rewritten() {
+            return IncludeInEmit::NotIncluded(NotIncludedReason::OverwrittenPackage);
+        }
+
+        #[cfg(feature = "check-licenses")]
+        if let Ok(PackageLicense::Unlicensed(unlicensed_reason)) =
+            self.is_package_licensed(package_registry)
+        {
+            return IncludeInEmit::NotIncluded(NotIncludedReason::Unlicensed(unlicensed_reason));
+        }
+
+        // All checks passed
+        IncludeInEmit::Included
     }
 
     pub fn generate_package_tree(
