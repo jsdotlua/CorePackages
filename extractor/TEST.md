@@ -39,46 +39,38 @@ Below is a reference to all CorePackages currently available on Wally under the 
 
 | Original Name | Wally Package | License(s) | Upstream Repository | Types Repository |
 | ------------- | ------------- | ---------- | ------------------- | ---------------- |
-| `NetworkingAliases` | [`networking-aliases@1.7.0`](https://wally.run/package/core-packages/networking-aliases) | N/A | N/A | N/A |
-| `roblox/lumberyak` | [`roblox-lumberyak@0.1.1`](https://wally.run/package/core-packages/roblox-lumberyak) | N/A | N/A | N/A |
-| `JestEnvironment` | [`jest-environment@3.2.1`](https://wally.run/package/core-packages/jest-environment) | N/A | N/A | N/A |
-| `RoduxUserPermissions` | [`rodux-user-permissions@0.5.0`](https://wally.run/package/core-packages/rodux-user-permissions) | N/A | N/A | N/A |
-| `rodux-networking` | [`rodux-networking@2.0.0`](https://wally.run/package/core-packages/rodux-networking) | N/A | N/A | N/A |
+| `Jest-edcba0e9-3.2.1` | [`core-packages/jest@3.2.1`](https://wally.run/package/core-packages/jest) | N/A | N/A | N/A |
+| `TestUtils-edcba0e9-3.2.1` | [`core-packages/test-utils@3.2.1`](https://wally.run/package/core-packages/test-utils) | N/A | N/A | N/A |
+| `ReactReconciler-a406e214-4230f473` | [`core-packages/react-reconciler@17.0.1-rc.18`](https://wally.run/package/core-packages/react-reconciler) | N/A | N/A | N/A |
+| `ReactReconciler-9c8468d8-8a7220fd` | [`core-packages/react-reconciler@17.0.1-rc.16`](https://wally.run/package/core-packages/react-reconciler) | N/A | N/A | N/A |
+| `JestConfig` | [`core-packages/jest-config@3.2.1`](https://wally.run/package/core-packages/jest-config) | N/A | N/A | N/A |
+| `JestCore` | [`core-packages/jest-core@3.2.1`](https://wally.run/package/core-packages/jest-core) | N/A | N/A | N/A |
+| `ES7Types` | [`core-packages/es-7-types@1.1.0`](https://wally.run/package/core-packages/es-7-types) | N/A | N/A | N/A |
+| `JestSnapshot-edcba0e9-3.2.1` | [`core-packages/jest-snapshot@3.2.1`](https://wally.run/package/core-packages/jest-snapshot) | N/A | N/A | N/A |
+| `JestReporters-edcba0e9-2.4.1` | [`core-packages/jest-reporters@2.4.1`](https://wally.run/package/core-packages/jest-reporters) | N/A | N/A | N/A |
+| `JestRuntime` | [`core-packages/jest-runtime@3.2.1`](https://wally.run/package/core-packages/jest-runtime) | N/A | N/A | N/A |
+| `JestEnvironmentLuau` | [`core-packages/jest-environment-luau@3.2.1`](https://wally.run/package/core-packages/jest-environment-luau) | N/A | N/A | N/A |
+| `JestReporters-edcba0e9-3.2.1` | [`core-packages/jest-reporters@3.2.1`](https://wally.run/package/core-packages/jest-reporters) | N/A | N/A | N/A |
 #### Blocked Packages
 
 While a package may be licensed, it could be blocked from being included by dependencies (direct or transient). Below is a reference to all packages blocked from being included by one or more unlicensed dependencies.
 
 | Original Name | Version | Blocking Dependencies | Upstream Repository | Types Repository |
 | ------------- | ------- | --------------------- | ------------------- | ---------------- |
-| `NetworkingAliases` | `1.7.0` | N/A | N/A | N/A |
-| `roblox/lumberyak` | `0.1.1` | N/A | N/A | N/A |
-| `JestEnvironment` | `3.2.1` | N/A | N/A | N/A |
-| `RoduxUserPermissions` | `0.5.0` | N/A | N/A | N/A |
-| `rodux-networking` | `2.0.0` | N/A | N/A | N/A |
 #### Blocking Packages
 
 Below is a reference to all packages that are blocking other packages from being included. This reference is mostly useful for prioritizing what should be rewritten under an open-source license, so that other packages may be included.
 
 | Original Name | Version | Blocked Count | Blocked Packages | Upstream Repository | Types Repository |
 | ------------- | ------- | ------------- | ---------------- | ------------------- | ---------------- |
-| `NetworkingAliases` | `1.7.0` | `0` | N/A | N/A | N/A |
-| `roblox/lumberyak` | `0.1.1` | `0` | N/A | N/A | N/A |
-| `JestEnvironment` | `3.2.1` | `0` | N/A | N/A | N/A |
-| `RoduxUserPermissions` | `0.5.0` | `0` | N/A | N/A | N/A |
-| `rodux-networking` | `2.0.0` | `0` | N/A | N/A | N/A |
 #### Unlicensed Packages
 
 Below is a reference to all packages that are simply unlicensed. Most are of no use to developers.
 
 <details>
-    <summary>Click to expand</summary>
-<!-- empty line *️⃣  -->
-    | Original Name | Version |
-    | ------------- | ------- |
-    | `NetworkingAliases` | `1.7.0` |
-    | `roblox/lumberyak` | `0.1.1` |
-    | `JestEnvironment` | `3.2.1` |
-    | `RoduxUserPermissions` | `0.5.0` |
-    | `rodux-networking` | `2.0.0` |
-    </details>
-<!-- empty line *️⃣  -->
+<summary>Click to expand</summary>
+
+| Original Name | Version |
+| ------------- | ------- |
+</details>
+

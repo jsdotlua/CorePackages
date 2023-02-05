@@ -40,7 +40,7 @@ Below is a reference to all CorePackages currently available on Wally under the 
 | Original Name | Wally Package | License(s) | Upstream Repository | Types Repository |
 | ------------- | ------------- | ---------- | ------------------- | ---------------- |
 {% for package in available_packages -%}
-| `{{package.name.unprocessed_name}}` | [`{{package.name.registry_name}}@{{package.lock.version}}`](https://wally.run/package/core-packages/{{package.name.registry_name}}) | N/A | N/A | N/A |
+| `{{package.name.path_name}}` | [`core-packages/{{package.name.registry_name}}@{{package.lock.version}}`](https://wally.run/package/core-packages/{{package.name.registry_name}}) | N/A | N/A | N/A |
 {% endfor -%}
 
 #### Blocked Packages
@@ -50,7 +50,7 @@ While a package may be licensed, it could be blocked from being included by depe
 | Original Name | Version | Blocking Dependencies | Upstream Repository | Types Repository |
 | ------------- | ------- | --------------------- | ------------------- | ---------------- |
 {% for package in blocked_packages -%}
-| `{{package.name.unprocessed_name}}` | `{{package.lock.version}}` | N/A | N/A | N/A |
+| `{{package.name.path_name}}` | `{{package.lock.version}}` | N/A | N/A | N/A |
 {% endfor -%}
 
 #### Blocking Packages
@@ -60,7 +60,7 @@ Below is a reference to all packages that are blocking other packages from being
 | Original Name | Version | Blocked Count | Blocked Packages | Upstream Repository | Types Repository |
 | ------------- | ------- | ------------- | ---------------- | ------------------- | ---------------- |
 {% for package in blocking_packages -%}
-| `{{package.name.unprocessed_name}}` | `{{package.lock.version}}` | `0` | N/A | N/A | N/A |
+| `{{package.name.path_name}}` | `{{package.lock.version}}` | `0` | N/A | N/A | N/A |
 {% endfor -%}
 
 #### Unlicensed Packages
@@ -68,12 +68,13 @@ Below is a reference to all packages that are blocking other packages from being
 Below is a reference to all packages that are simply unlicensed. Most are of no use to developers.
 
 <details>
-    <summary>Click to expand</summary>
-<!-- empty line *️⃣  -->
-    | Original Name | Version |
-    | ------------- | ------- |
-    {% for package in unlicensed_packages -%}
-    | `{{package.name.unprocessed_name}}` | `{{package.lock.version}}` |
-    {% endfor -%}
+<summary>Click to expand</summary>
+
+| Original Name | Version |
+| ------------- | ------- |
+{% for package in unlicensed_packages -%}
+| `{{package.name.path_name}}` | `{{package.lock.version}}` |
+{% endfor -%}
+
 </details>
-<!-- empty line *️⃣  -->
+

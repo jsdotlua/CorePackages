@@ -21,13 +21,13 @@ pub mod package_rewrite;
 pub mod package_tree;
 pub mod stream;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum IncludeInEmit {
     Included,
     NotIncluded(NotIncludedReason),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NotIncludedReason {
     OverwrittenPackage,
     #[cfg(feature = "check-licenses")]
@@ -43,6 +43,7 @@ pub struct Package {
     pub lock: PackageLock,
 
     #[cfg(feature = "check-licenses")]
+    #[serde(skip_serializing)]
     pub licenses: ScriptLicenses,
 }
 

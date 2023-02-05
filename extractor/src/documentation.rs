@@ -5,55 +5,54 @@ use lazy_static::lazy_static;
 use tera::{Context as TeraContext, Tera};
 
 use crate::{
-    package::Package,
-    package_registry::{PackageRef, PackageRegistry},
+    package::{IncludeInEmit, Package},
+    package_registry::PackageRegistry,
 };
 
 lazy_static! {
-    pub static ref TEMPLATES: Tera = Tera::new("resources/templates/**/*").unwrap();
+    pub static ref TEMPLATES: Tera =
+        Tera::new("resources/templates/**/*").expect("valid template file");
 }
 
 #[derive(Debug)]
-pub struct ReadmeContent {
-    pub available_packages: Vec<PackageRef>,
-    pub blocked_packages: Vec<PackageRef>,
-    pub blocking_packages: Vec<PackageRef>,
-    pub unlicensed_packages: Vec<PackageRef>,
+pub struct ReadmeContent<'a> {
+    pub available_packages: Vec<&'a Package>,
+    pub blocked_packages: Vec<&'a Package>,
+    pub blocking_packages: Vec<&'a Package>,
+    pub unlicensed_packages: Vec<&'a Package>,
 }
 
-pub fn generate_readme(
-    registry: &PackageRegistry,
-    content: &ReadmeContent,
-) -> anyhow::Result<String> {
-    let available_packages = content
-        .available_packages
-        .iter()
-        .map(|i| registry.packages.get(&i).unwrap())
-        .collect::<Vec<&Package>>();
+impl<'a> ReadmeContent<'a> {
+    pub fn new(registry: &'a PackageRegistry) -> anyhow::Result<Self> {
+        // First, find all of our fully licensed packages
+        let available_packages = registry
+            .packages
+            .values()
+            .filter(|package| {
+                package.include_in_extractor_emit(
+                    #[cfg(feature = "check-licenses")]
+                    registry,
+                ) == IncludeInEmit::Included
+            })
+            .collect::<Vec<&Package>>();
 
-    let blocked_packages = content
-        .blocked_packages
-        .iter()
-        .map(|i| registry.packages.get(&i).unwrap())
-        .collect::<Vec<&Package>>();
+        Ok(Self {
+            available_packages,
+            blocked_packages: vec![],
+            blocking_packages: vec![],
+            unlicensed_packages: vec![],
+        })
+    }
+}
 
-    let blocking_packages = content
-        .blocking_packages
-        .iter()
-        .map(|i| registry.packages.get(&i).unwrap())
-        .collect::<Vec<&Package>>();
-
-    let unlicensed_packages = content
-        .unlicensed_packages
-        .iter()
-        .map(|i| registry.packages.get(&i).unwrap())
-        .collect::<Vec<&Package>>();
+pub fn generate_readme(registry: &PackageRegistry) -> anyhow::Result<String> {
+    let content = ReadmeContent::new(registry).context("Failed to generate readme content")?;
 
     let mut context = TeraContext::new();
-    context.insert("available_packages", &available_packages);
-    context.insert("blocked_packages", &blocked_packages);
-    context.insert("blocking_packages", &blocking_packages);
-    context.insert("unlicensed_packages", &unlicensed_packages);
+    context.insert("available_packages", &content.available_packages);
+    context.insert("blocked_packages", &content.blocked_packages);
+    context.insert("blocking_packages", &content.blocking_packages);
+    context.insert("unlicensed_packages", &content.unlicensed_packages);
 
     let readme_str = TEMPLATES
         .render("README.md", &context)
