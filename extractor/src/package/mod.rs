@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{bail, Context};
+use serde::Serialize;
 
 #[cfg(feature = "check-licenses")]
 use self::license_extractor::{
@@ -34,7 +35,7 @@ pub enum NotIncludedReason {
 }
 
 /// Represents a LuaPackage. Contains metadata about the package such as license info and dependencies.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Package {
     pub package_path: PathBuf,
 

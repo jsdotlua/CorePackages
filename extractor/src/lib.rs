@@ -1,5 +1,6 @@
 #![feature(int_roundings)]
 
+pub mod documentation;
 pub mod package;
 pub mod package_registry;
 pub mod packages_downloader;

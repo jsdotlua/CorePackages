@@ -2,9 +2,10 @@ use std::path::Path;
 
 use anyhow::Context;
 use convert_case::{Case, Casing};
+use serde::Serialize;
 
 /// There are various different ways a package is named with Roblox's Rotriever. This stores all of them.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct PackageName {
     /// The name of the package as it appears on the path. For example, `ChalkLua-198f600a-0.1.3`.
     pub path_name: String,

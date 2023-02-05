@@ -7,6 +7,7 @@ use std::{
 use anyhow::Context;
 use askalono::TextData;
 use lazy_static::lazy_static;
+use serde::Serialize;
 
 /// Minimum match score for the script license to be considered valid
 const LICENSE_SCORE_THRESHOLD: f32 = 0.95;
@@ -42,7 +43,7 @@ lazy_static! {
 }
 
 /// Described the license status of one script.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Serialize, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ScriptLicense {
     Licensed(String),
     Unlicensed,

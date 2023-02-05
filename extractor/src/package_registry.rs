@@ -7,7 +7,7 @@ use crate::package::Package;
 
 /// Numeric reference to a specific package in the registry.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deref)]
-pub struct PackageRef(u32);
+pub struct PackageRef(pub u32);
 
 /// Source of truth for LuaPackages. Maintains a list of all discovered Packages.
 pub struct PackageRegistry {
