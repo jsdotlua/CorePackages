@@ -1,0 +1,10 @@
+{
+    "getJestMatchers.roblox.lua": [
+        "Scheduler-9c8468d8-8a7220fd/Scheduler/getJestMatchers.roblox.lua",
+        "Scheduler-07417f27-17.0.1-rc.17/Scheduler/getJestMatchers.roblox.lua",
+        "Scheduler-a406e214-4230f473/Scheduler/getJestMatchers.roblox.lua"
+    ],
+    "RegExp.lua": [
+        "RegExp/RegExp/init.lua"
+    ]
+}

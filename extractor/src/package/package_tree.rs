@@ -53,7 +53,7 @@ fn compute_package_tree_internal(
 
         let mut dependencies = dependencies.iter().peekable();
         while let Some(dependency) = dependencies.next() {
-            if !dependency.is_core_package {
+            if !dependency.is_rewritten {
                 // This dependency isn't a core package (probably rewritten), so we can't compute its dependencies.
                 // Insert the dependency into the stream and continue
                 stream.write_line(

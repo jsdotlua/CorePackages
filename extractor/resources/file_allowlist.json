@@ -1,0 +1,21 @@
+[
+    "ReactRoblox-a406e214-4230f473/ReactRoblox/ReactReconciler.roblox.lua",
+    "JestCircus/JestCircus/circus/legacy-code-todo-rewrite/temporarySnapshotData.lua",
+    "ReactRoblox-9c8468d8-8a7220fd/ReactRoblox/ReactReconciler.roblox.lua",
+    "RobloxShared-edcba0e9-3.2.1/RobloxShared/escapePatternCharacters.lua",
+    "LuauPolyfill-2fca3173-1.2.2/LuauPolyfill/.robloxrc",
+    "Boolean/Boolean/.robloxrc",
+    "Collections/Collections/.robloxrc",
+    "Collections/Collections/init.lua",
+    "Collections/Collections/Map/init.lua",
+    "Console/Console/.robloxrc",
+    "InstanceOf/InstanceOf/.robloxrc",
+    "InstanceOf/InstanceOf/init.lua",
+    "Math/Math/.robloxrc",
+    "Math/Math/clz32.lua",
+    "Number/Number/.robloxrc",
+    "String/String/.robloxrc",
+    "Symbol/Symbol/.robloxrc",
+    "Timers/Timers/.robloxrc",
+    "RegExp/RegExp/.robloxrc"
+]

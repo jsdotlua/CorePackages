@@ -49,6 +49,12 @@ impl PackageRegistry {
         })
     }
 
+    pub fn find_by_commit_hash(&self, commit_hash: &str) -> Option<(&PackageRef, &Package)> {
+        self.packages
+            .iter()
+            .find(|(_, package)| package.lock.commit.starts_with(commit_hash))
+    }
+
     /// Search through an `_Index` directory for packages.
     pub fn discover_packages_at_index(&mut self, index_path: &Path) -> anyhow::Result<()> {
         let entries = fs::read_dir(index_path)

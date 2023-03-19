@@ -28,9 +28,8 @@ pub struct LockDependency {
     /// Indicates that the package version is a proper semver format (probably a Git hash if not).
     pub is_semver_version: bool,
 
-    /// Indicates that the package belongs to the Wally `core-packages/` scope. This is typically only if the dependency
-    /// hasn't been rewritten.
-    pub is_core_package: bool,
+    /// Indicates that the original package has been rewritten with another.
+    pub is_rewritten: bool,
 }
 
 /// Raw Rotriever lock file as it appears on disk. Has associated utility for parsing dependencies.
@@ -83,11 +82,11 @@ impl PackageLock {
                 let (rewritten, registry_name, version) = resolve_package(&registry_name, version);
 
                 let dependency = LockDependency {
-                    registry_name: registry_name,
+                    registry_name,
                     path_name: path_name.to_owned(),
                     version: version.to_owned(),
                     is_semver_version: Version::from_str(&version).is_ok(),
-                    is_core_package: rewritten == false,
+                    is_rewritten: rewritten,
                 };
 
                 dependency_list.push(dependency);
@@ -134,7 +133,7 @@ mod tests {
             path_name: "LuauPolyfill".into(),
             version: "1.1.0".into(),
             is_semver_version: true,
-            is_core_package: true,
+            is_rewritten: false,
         };
 
         assert_eq!(*deps.get(0).unwrap(), dep);
@@ -151,7 +150,7 @@ mod tests {
             path_name: "Promise".into(),
             version: "4.0.0".into(),
             is_semver_version: true,
-            is_core_package: false,
+            is_rewritten: true,
         };
 
         assert_eq!(*deps.get(1).unwrap(), dep);

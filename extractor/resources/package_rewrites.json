@@ -9,5 +9,48 @@
         "description": "Roblox's internal (unlicensed) Promise upgrade flag package, lives at https://github.com/roblox/promise-upgrade"
       }
     ]
+  },
+  "LuauPolyfill": {
+    "newSource": "core-packages/luau-polyfill",
+    "newVersion": "1.2.2",
+    "originals": [
+      {
+        "name": "luau-polyfill",
+        "version": "0.3.4",
+        "description": "Outdated of version of LuauPolyfill which is unlicensed. Can be safely mapped to latest version."
+      },
+      {
+        "name": "luau-polyfill",
+        "version": "0.4.2",
+        "description": "Outdated of version of LuauPolyfill which is unlicensed. Can be safely mapped to latest version."
+      },
+      {
+        "name": "luau-polyfill",
+        "version": "2fca3173",
+        "description": "Outdated of version of LuauPolyfill which is unlicensed. Can be safely mapped to latest version."
+      }
+    ]
+  },
+  "ChalkLua": {
+    "newSource": "grilme99/chalk-lua",
+    "newVersion": "0.1.0",
+    "originals": [
+      {
+        "name": "chalk-lua",
+        "version": "0.2.0",
+        "description": "Unlicensed ChalkLua implementation."
+      }
+    ]
+  },
+  "Sift": {
+    "newSource": "csqrl/sift",
+    "newVersion": "0.0.5",
+    "originals": [
+      {
+        "name": "cryo",
+        "version": "1.0.1",
+        "description": "Internal and unlicensed immutable data library. Sift has an identical API."
+      }
+    ]
   }
 }

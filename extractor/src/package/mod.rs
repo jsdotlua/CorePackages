@@ -62,10 +62,21 @@ impl Package {
 
         #[cfg(feature = "check-licenses")]
         let licenses = {
-            log::info!("Computing licenses for package {}", name.path_name);
+            // If the package is rewritten then we'll just skip license checks.
+            let (is_rewritten, _, _) =
+                resolve_package(&name.registry_name, &lock.version.to_string());
+
+            if is_rewritten {
+                log::info!(
+                    "Package {} is rewritten, skipping license check",
+                    name.path_name
+                );
+            } else {
+                log::info!("Computing licenses for package {}", name.path_name);
+            }
 
             let src_path = get_package_src_path(&package_path, &name)?;
-            license_extractor::compute_license_information(&src_path)
+            license_extractor::compute_license_information(&src_path, is_rewritten)
                 .context("Failed to compute license information")
         }?;
 
@@ -101,12 +112,29 @@ impl Package {
                 let dep_name = lock_dependency.registry_name.to_owned();
                 let version = lock_dependency.version.to_owned();
 
-                let (_, package) =
+                if lock_dependency.is_rewritten {
+                    // We don't check license for rewritten packages because they should always be rewritten to a
+                    // package that is licensed.
+                    continue;
+                }
+
+                let (_, package) = if lock_dependency.is_semver_version {
                     package_registry
-                        .find_by_registry_name(&dep_name)
+                        .find_by_registry_name_and_version(&dep_name, &version)
                         .context(format!(
-                        "Dependency ({dep_name}) from lock file does not exist in package registry"
-                    ))?;
+                        "Dependency (\"{dep_name}\" {version}) from lock file for package {} {} does not exist in package registry",
+                        self.name.registry_name,
+                        self.lock.version.to_string(),
+                    ))?
+                } else {
+                    package_registry
+                        .find_by_commit_hash(&version)
+                        .context(format!(
+                        "Dependency (\"{dep_name}\" hash {version}) from lock file for package {} {} does not exist in package registry",
+                        self.name.registry_name,
+                        self.lock.version.to_string(),
+                    ))?
+                };
 
                 let package_license =
                     package

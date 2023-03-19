@@ -2,7 +2,10 @@ use std::{env, fs};
 
 use anyhow::{bail, Context};
 use env_logger::Env;
-use extractor::{documentation::generate_readme, package_registry::PackageRegistry};
+use extractor::{
+    documentation::{generate_package_debug, generate_readme},
+    package_registry::PackageRegistry,
+};
 // use extractor::packages_downloader::download_latest_lua_packages;
 
 #[tokio::main]
@@ -42,8 +45,24 @@ async fn main() -> anyhow::Result<()> {
 
     // println!("\n\nDependency tree for Jest:\n");
 
-    // let (_, package) = registry.find_by_path_name("Jest-edcba0e9-3.2.1").unwrap();
+    // let (_, package) = registry.find_by_path_name("RobloxShared-edcba0e9-3.2.1").unwrap();
+    // println!("{:?}", package.is_package_licensed(&registry));
     // println!("{}", package.generate_package_tree(&registry)?);
+
+    let debug_path = current_dir.join("module_debug");
+    if !debug_path.exists() {
+        fs::create_dir(&debug_path).context("Failed to create debug dir")?;
+    }
+
+    for (_, package) in &registry.packages {
+        let file_path = debug_path.join(format!("{}.md", package.name.path_name));
+        let debug_content = generate_package_debug(&registry, &package.name.path_name)?;
+
+        log::info!("Generating debug for package {}", package.name.path_name);
+
+        fs::write(&file_path, debug_content)
+            .context(format!("Failed to write module debug {file_path:?}"))?;
+    }
 
     let readme = generate_readme(&registry)?;
 

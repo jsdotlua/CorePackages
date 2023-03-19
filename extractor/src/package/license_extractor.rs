@@ -17,12 +17,29 @@ const RAW_LICENSE_DATASET: &'static str = include_str!(concat!(
     "/resources/datasets/license_headers.json"
 ));
 
+const RAW_FILE_ALLOWLIST: &'static str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/resources/file_allowlist.json"
+));
+
+const RAW_SOURCE_REPLACEMENTS: &'static str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/resources/source_replacements.json"
+));
+
 type LicenseDataset = HashMap<String, Vec<String>>;
 type LicenseTextData = HashMap<String, Vec<TextData>>;
+
+type FileAllowlist = Vec<String>;
+
+type SourceReplacements = HashMap<String, Vec<String>>;
 
 lazy_static! {
     static ref LICENSE_DATASET: LicenseDataset =
         serde_json::from_str(&RAW_LICENSE_DATASET).unwrap();
+    static ref FILE_ALLOWLIST: FileAllowlist = serde_json::from_str(&RAW_FILE_ALLOWLIST).unwrap();
+    static ref SOURCE_REPLACEMENTS: SourceReplacements =
+        serde_json::from_str(&RAW_SOURCE_REPLACEMENTS).unwrap();
 }
 
 lazy_static! {
@@ -71,7 +88,10 @@ pub enum UnlicensedPackageReason {
 pub type ScriptLicenses = std::collections::BTreeMap<ScriptLicense, Vec<PathBuf>>;
 
 /// Walks through all source files in the directory and computes license information.
-pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLicenses> {
+pub fn compute_license_information(
+    src_path: &Path,
+    is_rewritten: bool,
+) -> anyhow::Result<ScriptLicenses> {
     let mut licenses: BTreeMap<ScriptLicense, Vec<PathBuf>> = BTreeMap::new();
 
     let package_path = src_path.parent().context("Src path contains no parent")?;
@@ -97,7 +117,7 @@ pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLice
             // the license.
             let license_header = extract_license_header(&script_source);
 
-            let license = if license_header.is_empty() {
+            let mut license = if license_header.is_empty() {
                 // No license header, this script is probably unlicensed
                 ScriptLicense::Unlicensed
             } else {
@@ -112,6 +132,29 @@ pub fn compute_license_information(src_path: &Path) -> anyhow::Result<ScriptLice
                 .skip(component_count - 1)
                 .map(|i| i.as_os_str())
                 .collect::<PathBuf>();
+
+            // Some files don't include a license header, but are so small that it's impossible to rewrite them under a
+            // new license (such as re-export files). In those cases, we'll force them to be under a certain license.
+            let path_str = path.to_str().unwrap();
+            let is_allowlisted = FILE_ALLOWLIST
+                .iter()
+                .find(|i| path_str.contains(i.as_str()))
+                .is_some();
+
+            let is_replaced = SOURCE_REPLACEMENTS
+                .iter()
+                .find(|(_, paths)| {
+                    paths
+                        .iter()
+                        .find(|i| path_str.contains(i.as_str()))
+                        .is_some()
+                })
+                .is_some();
+
+            if is_rewritten || is_allowlisted || is_replaced {
+                // TODO: Is it appropriate to make all of these MIT? Might need to revisit later.
+                license = ScriptLicense::Licensed("MIT".into())
+            }
 
             if let Some(license_record) = licenses.get_mut(&license) {
                 license_record.push(path.to_owned());
@@ -170,9 +213,10 @@ fn extract_license_header(source: &str) -> String {
             // upstream` comment. If we check the comment *isn't* an upstream comment, then it's *probably* a license.
 
             let is_upstream = next_line.to_lowercase().contains("upstream");
+            let is_luau_directive = next_line.starts_with("!");
             let is_empty = next_line.is_empty();
 
-            let is_license_start = !is_upstream && !is_empty;
+            let is_license_start = !is_upstream && !is_luau_directive && !is_empty;
             if is_license_start {
                 found_start = true;
                 license_parts.push(next_line);
@@ -234,7 +278,8 @@ LICENSE file in the root directory of this source tree."
 
     #[test]
     fn extracts_js_comment_license_header() {
-        let source = "-- ROBLOX upstream: https://github.com/facebook/jest/blob/v27.4.7/packages/jest-diff/src/diffStrings.ts
+        let source = "--!strict
+-- ROBLOX upstream: https://github.com/facebook/jest/blob/v27.4.7/packages/jest-diff/src/diffStrings.ts
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 --  *
