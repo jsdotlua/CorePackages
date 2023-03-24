@@ -61,7 +61,7 @@ fn lock_dependencies_exist_in_registry() {
         .unwrap();
 
     assert_eq!(polyfill_dep.registry_name, luau_polyfill.name.registry_name);
-    assert_eq!(polyfill_dep.version, luau_polyfill.lock.version.to_string());
+    assert_eq!(polyfill_dep.version, luau_polyfill.lock.version);
 }
 
 #[test]
@@ -142,7 +142,7 @@ fn licensed_package_with_direct_unlicensed_dependency_is_unlicensed() {
         jest.is_package_licensed(&registry).unwrap(),
         PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![(
             "diff-sequences".into(),
-            "2.4.5".into(),
+            PackageVersion::new("2.4.5"),
             UnlicensedPackageReason::UnlicensedScripts(vec![
                 "DiffSequences-edcba0e9-2.4.5/src/init.lua".into()
             ])
@@ -161,10 +161,10 @@ fn licensed_package_with_transient_unlicensed_dependency_is_unlicensed() {
         chalk.is_package_licensed(&registry).unwrap(),
         PackageLicense::Unlicensed(UnlicensedPackageReason::UnlicensedDependencies(vec![(
             "jest-circus".into(),
-            "3.2.1".into(),
+            PackageVersion::new("3.2.1"),
             UnlicensedPackageReason::UnlicensedDependencies(vec![(
                 "diff-sequences".into(),
-                "2.4.5".into(),
+                PackageVersion::new("2.4.5"),
                 UnlicensedPackageReason::UnlicensedScripts(vec![
                     "DiffSequences-edcba0e9-2.4.5/src/init.lua".into()
                 ])

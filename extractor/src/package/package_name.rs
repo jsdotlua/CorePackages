@@ -9,7 +9,7 @@ use serde::Serialize;
 /// prefix. For example, `roblox/lumberyak` becomes `core-packages/roblox-lumberyak`.
 pub fn format_registry_name(name: &str) -> String {
     let name = name.to_case(Case::Kebab);
-    format!("core-packages/{}", name.replace("/", "-"))
+    name.replace("/", "-")
 }
 
 /// There are various different ways a package is named with Roblox's Rotriever. This stores all of them.

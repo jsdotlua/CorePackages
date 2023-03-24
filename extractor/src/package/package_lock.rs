@@ -7,11 +7,12 @@ use serde::{Deserialize, Serialize};
 
 use super::{package_name::format_registry_name, package_rewrite::resolve_package};
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Deref)]
+#[derive(Debug, Clone, Hash, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord, Deref)]
 pub struct CommitHash(String);
 
 /// Rotriever stores package versions as either a commit hash or a SemVer version.
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Hash, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(untagged)]
 pub enum PackageVersion {
     SemVer(Version),
     Commit(CommitHash),
@@ -61,7 +62,7 @@ pub struct LockDependency {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PackageLock {
     pub name: String,
-    pub version: Version,
+    pub version: PackageVersion,
     pub commit: String,
     pub source: String,
     pub dependencies: Option<Vec<String>>,
@@ -124,10 +125,6 @@ impl PackageLock {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
-    use semver::Version;
-
     use crate::package::package_lock::{LockDependency, PackageVersion};
 
     use super::PackageLock;
@@ -135,7 +132,7 @@ mod tests {
     fn make_lock() -> PackageLock {
         PackageLock {
             name: "Emittery".into(),
-            version: Version::from_str("3.2.1").unwrap(),
+            version: PackageVersion::new("3.2.1"),
             commit: "792ffec6ca98a6d725d25d678d693f486c1d2c75".into(),
             source: "url+https://github.com/roblox/jest-roblox".into(),
             dependencies: Some(vec![
