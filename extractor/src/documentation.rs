@@ -107,7 +107,8 @@ impl<'a> DebugContent<'a> {
 
                 // TODO: Recursively search the tree instead of only doing one-level
                 for (dependency, version, _) in deps {
-                    blocking_tree.push_str(&format!("- `{dependency}` (`{version}`)\n"));
+                    blocking_tree
+                        .push_str(&format!("- `{dependency}` (`{}`)\n", version.to_string()));
                 }
             }
         }

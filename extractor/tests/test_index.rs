@@ -6,7 +6,7 @@ use std::path::Path;
 use extractor::package::license_extractor::{
     PackageLicense, ScriptLicense, UnlicensedPackageReason,
 };
-use extractor::{package::package_lock::LockDependency, package_registry::PackageRegistry};
+use extractor::{package::package_lock::{LockDependency, PackageVersion}, package_registry::PackageRegistry};
 
 const TEST_INDEX_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/test_index");
 
@@ -38,8 +38,7 @@ fn lock_dependencies_are_parsed() {
     let polyfill_dep = LockDependency {
         registry_name: "luau-polyfill".into(),
         path_name: "LuauPolyfill".into(),
-        version: "1.1.0".into(),
-        is_semver_version: true,
+        version: PackageVersion::new("1.1.0"),
         is_rewritten: false,
     };
 

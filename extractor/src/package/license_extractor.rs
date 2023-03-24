@@ -9,6 +9,8 @@ use askalono::TextData;
 use lazy_static::lazy_static;
 use serde::Serialize;
 
+use super::package_lock::PackageVersion;
+
 /// Minimum match score for the script license to be considered valid
 const LICENSE_SCORE_THRESHOLD: f32 = 0.95;
 
@@ -82,7 +84,7 @@ pub enum UnlicensedPackageReason {
     UnlicensedScripts(Vec<PathBuf>),
     /// One or more dependencies are unlicensed. Enum contains a vector of all dependencies, their version, and its package
     /// license that are not licensed.
-    UnlicensedDependencies(Vec<(String, String, UnlicensedPackageReason)>),
+    UnlicensedDependencies(Vec<(String, PackageVersion, UnlicensedPackageReason)>),
 }
 
 pub type ScriptLicenses = std::collections::BTreeMap<ScriptLicense, Vec<PathBuf>>;

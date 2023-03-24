@@ -4,6 +4,14 @@ use anyhow::Context;
 use convert_case::{Case, Casing};
 use serde::Serialize;
 
+/// Formats any arbitrary string into a Wally registry-compatible string. Some Rotriever packages are scoped and others
+/// aren't. Wally only supports one scope, and we're using that for `core-packages`. Convert the Rotriever scope into a
+/// prefix. For example, `roblox/lumberyak` becomes `core-packages/roblox-lumberyak`.
+pub fn format_registry_name(name: &str) -> String {
+    let name = name.to_case(Case::Kebab);
+    format!("core-packages/{}", name.replace("/", "-"))
+}
+
 /// There are various different ways a package is named with Roblox's Rotriever. This stores all of them.
 #[derive(Debug, Serialize)]
 pub struct PackageName {
@@ -31,10 +39,7 @@ impl PackageName {
         // Wally requires that all packages are kebab-case
         let name = lock_name.to_case(Case::Kebab);
 
-        // Some Rotriever packages are scoped and others aren't. Wally only supports one scope, and we're using that for
-        // `core-packages`. Convert the Rotriever scope into a prefix. For example, `roblox/lumberyak` becomes
-        // `roblox-lumberyak`.
-        let registry_name = name.replace("/", "-");
+        let registry_name = format_registry_name(&name);
 
         let (scope, scoped_name) = if name.contains("/") {
             let mut segments = name.split("/");

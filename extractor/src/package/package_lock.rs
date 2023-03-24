@@ -1,10 +1,40 @@
 use std::{fs, path::Path, str::FromStr};
 
 use anyhow::{bail, Context};
+use derive_more::Deref;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use super::{package_name::PackageName, package_rewrite::resolve_package};
+use super::{package_name::format_registry_name, package_rewrite::resolve_package};
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Deref)]
+pub struct CommitHash(String);
+
+/// Rotriever stores package versions as either a commit hash or a SemVer version.
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum PackageVersion {
+    SemVer(Version),
+    Commit(CommitHash),
+}
+
+impl PackageVersion {
+    pub fn new(raw_version: &str) -> Self {
+        if let Ok(version) = Version::from_str(raw_version) {
+            PackageVersion::SemVer(version)
+        } else {
+            PackageVersion::Commit(CommitHash(raw_version.to_owned()))
+        }
+    }
+}
+
+impl ToString for PackageVersion {
+    fn to_string(&self) -> String {
+        match self {
+            PackageVersion::SemVer(version) => version.to_string(),
+            PackageVersion::Commit(commit) => commit.0.to_owned(),
+        }
+    }
+}
 
 /// An easy to consume representation of dependencies in a lock.toml file.
 #[derive(Debug, PartialEq, Eq)]
@@ -20,13 +50,8 @@ pub struct LockDependency {
     /// ```
     pub path_name: String,
 
-    /// Stored as a string rather than a Semver `Version` struct because this can either by a standard `Version` or a
-    /// Git commit hash. In the case of a commit hash, an error will be thrown later because they are not supported by
-    /// Wally. Any dependency with a commit hash need to be overwritten manually.
-    pub version: String,
-
-    /// Indicates that the package version is a proper semver format (probably a Git hash if not).
-    pub is_semver_version: bool,
+    /// The package version of this dependency.
+    pub version: PackageVersion,
 
     /// Indicates that the original package has been rewritten with another.
     pub is_rewritten: bool,
@@ -68,24 +93,22 @@ impl PackageLock {
                         .context("Expected registry name after <patched>")?;
                 }
 
-                let version = parts.next().context("Expected version")?;
+                let raw_version = parts.next().context("Expected version")?;
+                let version = PackageVersion::new(&raw_version);
 
                 // We have special behaviour for parsing registry names
-                // TODO: This should probably be extracted out into a utility function that doesn't require us to create
-                // a temporary path.
-                let package_name = PackageName::new(Path::new("foo"), &registry_name)
-                    .context("Failed to create package name")?;
-
-                let registry_name = package_name.registry_name;
+                let registry_name = format_registry_name(&registry_name);
 
                 // Resolve package overwrites
-                let (rewritten, registry_name, version) = resolve_package(&registry_name, version);
+                let (rewritten, registry_name, version) =
+                    resolve_package(&registry_name, &version.to_string());
+
+                let version = PackageVersion::new(&version);
 
                 let dependency = LockDependency {
                     registry_name,
                     path_name: path_name.to_owned(),
-                    version: version.to_owned(),
-                    is_semver_version: Version::from_str(&version).is_ok(),
+                    version,
                     is_rewritten: rewritten,
                 };
 
@@ -105,7 +128,7 @@ mod tests {
 
     use semver::Version;
 
-    use crate::package::package_lock::LockDependency;
+    use crate::package::package_lock::{LockDependency, PackageVersion};
 
     use super::PackageLock;
 
@@ -131,8 +154,7 @@ mod tests {
         let dep = LockDependency {
             registry_name: "luau-polyfill".into(),
             path_name: "LuauPolyfill".into(),
-            version: "1.1.0".into(),
-            is_semver_version: true,
+            version: PackageVersion::new("1.1.0"),
             is_rewritten: false,
         };
 
@@ -148,8 +170,7 @@ mod tests {
         let dep = LockDependency {
             registry_name: "evaera/promise".into(),
             path_name: "Promise".into(),
-            version: "4.0.0".into(),
-            is_semver_version: true,
+            version: PackageVersion::new("4.0.0"),
             is_rewritten: true,
         };
 

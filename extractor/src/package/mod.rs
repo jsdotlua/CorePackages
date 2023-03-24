@@ -9,7 +9,6 @@ use self::license_extractor::{
 };
 use self::{
     package_lock::PackageLock, package_name::PackageName, package_rewrite::resolve_package,
-    package_tree::compute_package_tree,
 };
 use crate::package_registry::PackageRegistry;
 
@@ -18,8 +17,6 @@ pub mod license_extractor;
 pub mod package_lock;
 pub mod package_name;
 pub mod package_rewrite;
-pub mod package_tree;
-pub mod stream;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum IncludeInEmit {
@@ -118,23 +115,15 @@ impl Package {
                     continue;
                 }
 
-                let (_, package) = if lock_dependency.is_semver_version {
-                    package_registry
-                        .find_by_registry_name_and_version(&dep_name, &version)
-                        .context(format!(
-                        "Dependency (\"{dep_name}\" {version}) from lock file for package {} {} does not exist in package registry",
+                let (_, package) = package_registry
+                    .resolve_lock_dependency_to_package(&lock_dependency)
+                    .context(format!(
+                        "Lock dependency {}@{} of package {}@{} does not exist in registry",
+                        lock_dependency.registry_name,
+                        lock_dependency.version.to_string(),
                         self.name.registry_name,
                         self.lock.version.to_string(),
-                    ))?
-                } else {
-                    package_registry
-                        .find_by_commit_hash(&version)
-                        .context(format!(
-                        "Dependency (\"{dep_name}\" hash {version}) from lock file for package {} {} does not exist in package registry",
-                        self.name.registry_name,
-                        self.lock.version.to_string(),
-                    ))?
-                };
+                    ))?;
 
                 let package_license =
                     package
@@ -197,13 +186,6 @@ impl Package {
 
         // All checks passed
         IncludeInEmit::Included
-    }
-
-    pub fn generate_package_tree(
-        &self,
-        package_registry: &PackageRegistry,
-    ) -> anyhow::Result<String> {
-        compute_package_tree(&self, package_registry)
     }
 }
 
