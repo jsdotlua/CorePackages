@@ -12,6 +12,8 @@
 
 </div>
 
+**NOTE:** This repository is no longer directly maintained! All packages families (React, Jest, etc.) now live in their own repositories. Check our [org page](https://github.com/jsdotlua) for more.
+
 ## About
 
 This project comes in two parts:
